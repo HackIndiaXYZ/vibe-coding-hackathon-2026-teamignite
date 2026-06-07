@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OutcomeSpec AI - Describe what you want. Get a full technical blueprint.</title>
+  <meta name="description" content="Turn any plain-English product idea into a complete technical specification package, database schema, API design, roadmap, and vibe coding prompts in seconds.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon">
+          <!-- Logo Icon: Hexagon with Spec lines -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <span class="logo-text">OutcomeSpec</span>
+        <span class="logo-badge">AI ARCHITECT</span>
+      </div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        <span>AI Engine: Operational</span>
+      </div>
+    </header>
+
+    <!-- MAIN VIEWPORTS -->
+    <main>
+      
+      <!-- 1. INPUT & HERO VIEW -->
+      <section id="input-view" class="view-section active">
+        <div class="hero-wrapper">
+          <h1>Describe what you want.<br>Get a full product blueprint.</h1>
+          <p>Turn any idea into a complete, developer-ready technical specification package powered by our advanced AI architect engine.</p>
+        </div>
+
+        <div class="input-container-card">
+          <textarea id="prompt-input" class="prompt-textarea" placeholder="Example: Build a marketplace where students buy and sell used textbooks. It should have user authentication, listings search, secure messaging, and online payment integrations."></textarea>
+          
+          <div class="input-actions-row">
+            <span class="char-counter"><span id="char-count">0</span> / 1000 characters</span>
+            <button id="generate-btn" class="btn-generate">
+              <span>Generate Blueprint</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Suggestions / Quick-fills -->
+        <div class="quick-fill-container">
+          <span class="quick-fill-label">Or start with a template:</span>
+          <div class="quick-fill-grid">
+            <button class="suggestion-pill" data-prompt="Build a SaaS analytics dashboard for marketing agencies. It needs user management, custom report builders, integrations with Google Ads and Facebook Ads, and a subscription billing system with Stripe.">SaaS Analytics Platform</button>
+            <button class="suggestion-pill" data-prompt="Create an on-demand delivery app for local pharmacies. Customers upload prescriptions, pharmacists confirm availability, and local courier partners deliver them. Needs GPS tracking and secure medical document uploads.">On-Demand Pharmacy Delivery</button>
+            <button class="suggestion-pill" data-prompt="Develop an AI-powered fitness coaching app. Users input their goals, equipment access, and allergies, and an AI agent designs weekly workout and meal plans. It should track progress over time with charts.">AI Fitness Coach</button>
+            <button class="suggestion-pill" data-prompt="Build a decentralized peer-to-peer workspace booking app. Hosts list unused desks/rooms, and remote workers book them hourly. It requires calendar scheduling, ratings, reviews, and dynamic pricing.">P2P Space Booking App</button>
+          </div>
+        </div>
+
+        <!-- Features Showcase -->
+        <div class="features-section">
+          <h2>Everything you need to go from idea to code</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <h3>Full PRD &amp; User Stories</h3>
+              <p>Comprehensive functional and non-functional requirements alongside detailed Agile user stories that clarify exactly how users interact with your system.</p>
+            </div>
+            
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                  <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
+                </svg>
+              </div>
+              <h3>SQL &amp; NoSQL Database Schemas</h3>
+              <p>Complete schema definitions including tables, relations, fields, and indexing options. Supports both Postgres/MySQL and MongoDB schemas.</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2C"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+              </div>
+              <h3>API &amp; Tech Stack Blueprints</h3>
+              <p>RESTful endpoints, detailed request/response JSON payloads, frontend component folders, and targeted vibe-coding prompts for LLM code generators.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. LOADING VIEW -->
+      <section id="loading-view" class="view-section">
+        <div class="loading-wrapper">
+          <div class="loading-graphic-container">
+            <div class="loading-ring"></div>
+            <div class="loading-center-glow"></div>
+          </div>
+          <h2 id="loading-title">Synthesizing Product Architecture...</h2>
+          
+          <div class="loading-steps-list">
+            <div class="loading-step-item" id="step-0">
+              <div class="step-bullet">1</div>
+              <span>Analyzing product idea and key requirements...</span>
+            </div>
+            <div class="loading-step-item" id="step-1">
+              <div class="step-bullet">2</div>
+              <span>Designing product requirements document...</span>
+            </div>
+            <div class="loading-step-item" id="step-2">
+              <div class="step-bullet">3</div>
+              <span>Creating SQL &amp; NoSQL database schemas...</span>
+            </div>
+            <div class="loading-step-item" id="step-3">
+              <div class="step-bullet">4</div>
+              <span>Designing RESTful API specifications...</span>
+            </div>
+            <div class="loading-step-item" id="step-4">
+              <div class="step-bullet">5</div>
+              <span>Building frontend &amp; backend architecture plans...</span>
+            </div>
+            <div class="loading-step-item" id="step-5">
+              <div class="step-bullet">6</div>
+              <span>Preparing final development roadmap &amp; vibe prompts...</span>
+            </div>
+          </div>
+
+          <div class="progressbar-container">
+            <div id="progressbar-fill" class="progressbar-fill"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. OUTPUT / BLUEPRINT VIEW -->
+      <section id="blueprint-view" class="view-section">
+        
+        <!-- Header Actions -->
+        <div class="blueprint-header-actions">
+          <div class="blueprint-meta-info">
+            <h2 id="spec-product-name">Product Specification Blueprint</h2>
+            <p id="spec-product-type">Custom AI-synthesized CTO roadmap package</p>
+          </div>
+          
+          <div class="blueprint-top-buttons">
+            <button id="download-md-btn" class="btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download Markdown</span>
+            </button>
+            <button id="copy-full-btn" class="btn-outline-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Full Blueprint</span>
+            </button>
+            <button id="new-spec-btn" class="btn-secondary" style="border-color: rgba(99, 102, 241, 0.3);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"></path>
+              </svg>
+              <span>New Specification</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inner Layout -->
+        <div class="blueprint-layout">
+          
+          <!-- Sidebar Navigation -->
+          <div class="blueprint-sidebar-card">
+            <div class="sidebar-title">Blueprint Modules</div>
+            <ul class="sidebar-nav-list">
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn active" data-target="sec-executive">
+                  <span>1. Executive Summary</span>
+                  <span class="nav-index-num">01</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-prd">
+                  <span>2. Product Requirements</span>
+                  <span class="nav-index-num">02</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-stories">
+                  <span>3. User Stories</span>
+                  <span class="nav-index-num">03</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-database">
+                  <span>4. Database Schema</span>
+                  <span class="nav-index-num">04</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-api">
+                  <span>5. API Design</span>
+                  <span class="nav-index-num">05</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-frontend">
+                  <span>6. Frontend Architecture</span>
+                  <span class="nav-index-num">06</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-techstack">
+                  <span>7. Tech Stack Recommendation</span>
+                  <span class="nav-index-num">07</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-roadmap">
+                  <span>8. Development Roadmap</span>
+                  <span class="nav-index-num">08</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-vibe">
+                  <span>9. Vibe Coding Pack</span>
+                  <span class="nav-index-num">09</span>
+                </button>
+              </li>
+              <li class="sidebar-nav-item">
+                <button class="sidebar-nav-btn" data-target="sec-diagram">
+                  <span>10. Architecture Diagram</span>
+                  <span class="nav-index-num">10</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Main content panels -->
+          <div class="blueprint-content-pane">
+            
+            <!-- SECTION 1: Executive Summary -->
+            <div id="sec-executive" class="blueprint-section-container active">
+              <div class="blueprint-section-header">
+                <h3>Executive Summary</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-executive')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 2: Product Requirements Document -->
+            <div id="sec-prd" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Product Requirements Document</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-prd')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 3: User Stories -->
+            <div id="sec-stories" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>User Stories</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-stories')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 4: Database Schema -->
+            <div id="sec-database" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Database Schema Design</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-database')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              
+              <div class="tech-sub-tabs" id="db-sub-tabs">
+                <button class="tech-sub-tab-btn active" data-type="relational">PostgreSQL Schema (SQL)</button>
+                <button class="tech-sub-tab-btn" data-type="nosql">MongoDB Schema (NoSQL)</button>
+              </div>
+
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 5: API Design -->
+            <div id="sec-api" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>API Design Specification</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-api')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 6: Frontend Architecture -->
+            <div id="sec-frontend" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Frontend Architecture</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-frontend')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 7: Tech Stack Recommendation -->
+            <div id="sec-techstack" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Tech Stack Recommendation</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-techstack')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 8: Development Roadmap -->
+            <div id="sec-roadmap" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Development Roadmap</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-roadmap')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 9: Vibe Coding Pack -->
+            <div id="sec-vibe" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Vibe Coding Prompt Pack</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-vibe')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              
+              <div class="vibe-pill-box" id="vibe-copier-tabs">
+                <button class="vibe-pill-btn active" data-prompt="setup">Project Setup</button>
+                <button class="vibe-pill-btn" data-prompt="db">Database Setup</button>
+                <button class="vibe-pill-btn" data-prompt="backend">Backend API Setup</button>
+                <button class="vibe-pill-btn" data-prompt="frontend">Frontend Views Setup</button>
+                <button class="vibe-pill-btn" data-prompt="deploy">Deployment Guide</button>
+              </div>
+
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- SECTION 10: Architecture Diagram -->
+            <div id="sec-diagram" class="blueprint-section-container">
+              <div class="blueprint-section-header">
+                <h3>Architecture Diagram</h3>
+                <button class="btn-copy-section" onclick="copySectionText('sec-diagram')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy Section</span>
+                </button>
+              </div>
+              <div class="section-content-render">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>&copy; 2026 OutcomeSpec AI. Built by developers, for developers. Turn ideas into architectures in 60s.</p>
+    </footer>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast-notification">
+      <span class="toast-icon">✓</span>
+      <span id="toast-message">Copied successfully!</span>
+    </div>
+
+  </div>
+
+  <script src="generator.js"></script>
+</body>
+</html>

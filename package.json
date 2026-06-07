@@ -1,0 +1,19 @@
+{
+  "name": "outcomespec-ai",
+  "version": "1.0.0",
+  "description": "Describe what you want. Get a full product blueprint in 60 seconds.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server -p 3000 ."
+  },
+  "keywords": [
+    "product-architect",
+    "blueprint-generator",
+    "prd",
+    "database-schema",
+    "api-design",
+    "vibe-coding"
+  ],
+  "author": "",
+  "license": "MIT"
+}
