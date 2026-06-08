@@ -1,4 +1,4 @@
-// OutcomeSpec AI - Core Application Logic & Semantic Compiler Engine
+// OutcomeSpec AI - Core Application Logic & Semantic Domain Compiler
 
 document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements
@@ -205,11 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function startSimulation(prompt) {
     const steps = [
       { id: 'step-0', title: 'Analyzing product idea and key requirements...', duration: 1000 },
-      { id: 'step-1', title: 'Designing product requirements document...', duration: 1200 },
-      { id: 'step-2', title: 'Creating SQL & NoSQL database schemas...', duration: 1200 },
-      { id: 'step-3', title: 'Designing RESTful API specifications...', duration: 1200 },
-      { id: 'step-4', title: 'Building frontend & backend architecture plans...', duration: 1200 },
-      { id: 'step-5', title: 'Preparing final development roadmap & vibe prompts...', duration: 1000 }
+      { id: 'step-1', title: 'Designing product requirements document...', duration: 1100 },
+      { id: 'step-2', title: 'Creating SQL & NoSQL database schemas...', duration: 1100 },
+      { id: 'step-3', title: 'Designing RESTful API specifications...', duration: 1100 },
+      { id: 'step-4', title: 'Building frontend & backend architecture plans...', duration: 1100 },
+      { id: 'step-5', title: 'Preparing final development roadmap & vibe prompts...', duration: 900 }
     ];
 
     // Reset status on all items
@@ -267,230 +267,580 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================
-  // SEMANTIC EXTRACTION ENGINE (NLP SIMULATION)
+  // DOMAIN CLASSIFIER & SPECIFICATION COMPILER
   // =========================================
   function extractSemanticDetails(prompt) {
     const normalized = prompt.toLowerCase();
     
-    let domainName = "Custom Software Architecture";
-    let roles = ["User", "Administrator"];
+    let domainName = "";
+    let roles = [];
     let entities = [];
     let integrations = [];
     
-    // Core Domain Maps
-    if (normalized.includes('sitter') || normalized.includes('pet') || normalized.includes('dog') || normalized.includes('cat') || normalized.includes('animal') || normalized.includes('vet')) {
-      domainName = "Pet Care & Service Booking Hub";
-      roles = ["Pet Owner", "Pet Sitter", "Clinic Veterinarian", "System Administrator"];
+    // 1. Vacation Rental Marketplace (Airbnb style)
+    if (normalized.includes('airbnb') || normalized.includes('vacation rental') || normalized.includes('hotel') || normalized.includes('room booking') || normalized.includes('stay') || normalized.includes('property booking')) {
+      domainName = "Vacation Rental Marketplace";
+      roles = ["Guest Renter", "Host Property Owner", "Operations Auditor"];
       entities = [
         {
-          name: "Pet",
-          tableName: "pets",
+          name: "PropertyListing",
+          tableName: "property_listings",
           fields: [
-            { name: "owner_id", type: "UUID", refTable: "users", description: "Reference to user owner who owns the pet" },
-            { name: "name", type: "VARCHAR(100)", description: "Name of the pet" },
-            { name: "species", type: "VARCHAR(50)", description: "Species (dog, cat, bird, etc.)" },
-            { name: "breed", type: "VARCHAR(100)", description: "Specific breed details" },
-            { name: "age", type: "INT", description: "Age of pet in years" },
-            { name: "medical_records", type: "JSONB", description: "Allergies, vaccination stamps, and surgeries history" }
+            { name: "host_id", type: "UUID", refTable: "users", description: "Host account profile owning the listing" },
+            { name: "title", type: "VARCHAR(255)", description: "Title of the vacation property" },
+            { name: "description", type: "TEXT", description: "Detailed description of rooms, amenities, and location" },
+            { name: "price_per_night", type: "DECIMAL(10,2)", description: "Cost per single night stay in USD" },
+            { name: "max_guests", type: "INT", description: "Maximum accommodation capacity limit" },
+            { name: "latitude", type: "DOUBLE PRECISION", description: "Geographic latitude of property" },
+            { name: "longitude", type: "DOUBLE PRECISION", description: "Geographic longitude of property" },
+            { name: "status", type: "VARCHAR(50)", description: "Listing status: 'Active', 'Blocked', 'Archived'" }
           ]
         },
         {
-          name: "SitterProfile",
-          tableName: "sitter_profiles",
+          name: "Reservation",
+          tableName: "reservations",
           fields: [
-            { name: "sitter_id", type: "UUID", refTable: "users", description: "Link to user profile registered as a sitter" },
-            { name: "hourly_rate", type: "DECIMAL(10,2)", description: "Standard fee rate charged hourly" },
-            { name: "rating_avg", type: "DECIMAL(3,2)", description: "Aggregated review score from owners" },
-            { name: "bio", type: "TEXT", description: "Introductory overview details" }
+            { name: "listing_id", type: "UUID", refTable: "property_listings", description: "Booked property listing reference" },
+            { name: "guest_id", type: "UUID", refTable: "users", description: "Guest customer placing the booking" },
+            { name: "start_date", type: "DATE", description: "Check-in calendar date" },
+            { name: "end_date", type: "DATE", description: "Check-out calendar date" },
+            { name: "total_price", type: "DECIMAL(10,2)", description: "Sum price calculation of stay duration" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'" }
           ]
         },
         {
-          name: "Booking",
-          tableName: "bookings",
+          name: "Cancellation",
+          tableName: "cancellations",
           fields: [
-            { name: "pet_id", type: "UUID", refTable: "pets", description: "Reference to the pet being cared for" },
-            { name: "sitter_id", type: "UUID", refTable: "users", description: "Reference to the hired sitter" },
-            { name: "start_time", type: "TIMESTAMP", description: "Time the sitting begins" },
-            { name: "end_time", type: "TIMESTAMP", description: "Time the sitting ends" },
-            { name: "status", type: "VARCHAR(50)", description: "Status: 'Requested', 'Approved', 'Active', 'Completed', 'Cancelled'" }
+            { name: "reservation_id", type: "UUID", refTable: "reservations", description: "Reference to the cancelled stay booking" },
+            { name: "cancelled_by_id", type: "UUID", refTable: "users", description: "User ID who triggered the cancellation" },
+            { name: "refund_amount", type: "DECIMAL(10,2)", description: "Stripe escrow refund payload amount" },
+            { name: "reason", type: "TEXT", description: "Cancellation explanation details" }
           ]
         },
         {
           name: "Review",
           tableName: "reviews",
           fields: [
-            { name: "booking_id", type: "UUID", refTable: "bookings", description: "Reference to the corresponding booking" },
-            { name: "reviewer_id", type: "UUID", refTable: "users", description: "Owner submitting feedback rating" },
-            { name: "score", type: "INT", description: "Numerical score (1 to 5)" },
-            { name: "commentary", type: "TEXT", description: "Text feedback summary details" }
-          ]
-        }
-      ];
-    } else if (normalized.includes('car') || normalized.includes('vehicle') || normalized.includes('rental') || normalized.includes('fleet') || normalized.includes('drive') || normalized.includes('ride')) {
-      domainName = "On-Demand Vehicle Rental & Telemetry Fleet Platform";
-      roles = ["Renter Client", "Fleet Owner Manager", "Mechanic Auditor", "System Operator"];
-      entities = [
-        {
-          name: "Vehicle",
-          tableName: "vehicles",
-          fields: [
-            { name: "make", type: "VARCHAR(100)", description: "Manufacturer (e.g. Tesla, Ford)" },
-            { name: "model", type: "VARCHAR(100)", description: "Model variant name" },
-            { name: "license_plate", type: "VARCHAR(30)", description: "Registration plate identifier" },
-            { name: "daily_fee", type: "DECIMAL(10,2)", description: "Standard lease cost per calendar day" },
-            { name: "gps_lat", type: "DOUBLE PRECISION", description: "Last logged latitude geo coordinates" },
-            { name: "gps_lon", type: "DOUBLE PRECISION", description: "Last logged longitude geo coordinates" },
-            { name: "battery_status_percent", type: "INT", description: "Current fuel or battery percentage" }
-          ]
-        },
-        {
-          name: "RentalBooking",
-          tableName: "rental_bookings",
-          fields: [
-            { name: "vehicle_id", type: "UUID", refTable: "vehicles", description: "Reference to the booked vehicle" },
-            { name: "renter_id", type: "UUID", refTable: "users", description: "Reference to renter user ID" },
-            { name: "checkout_time", type: "TIMESTAMP", description: "Renter keys release log time" },
-            { name: "checkin_time", type: "TIMESTAMP", description: "Renter keys return log time" },
-            { name: "total_fare", type: "DECIMAL(10,2)", description: "Fulfillment checkout invoice amount" },
-            { name: "status", type: "VARCHAR(50)", description: "Status: 'Reserved', 'Active', 'Returned', 'Disputed'" }
-          ]
-        },
-        {
-          name: "DamageReport",
-          tableName: "damage_reports",
-          fields: [
-            { name: "booking_id", type: "UUID", refTable: "rental_bookings", description: "Reference to the booking transaction" },
-            { name: "reporter_id", type: "UUID", refTable: "users", description: "Reference to reporting user (renter/owner)" },
-            { name: "notes", type: "TEXT", description: "Explanation details of damage" },
-            { name: "photo_url", type: "TEXT", description: "Hosting path to snapshot evidence" }
-          ]
-        }
-      ];
-    } else if (normalized.includes('nft') || normalized.includes('bid') || normalized.includes('artwork') || normalized.includes('auction') || normalized.includes('crypto')) {
-      domainName = "Digital Art NFT Bidding Marketplace";
-      roles = ["Digital Artist", "Collector Buyer", "Market Curator"];
-      entities = [
-        {
-          name: "Artwork",
-          tableName: "artworks",
-          fields: [
-            { name: "artist_id", type: "UUID", refTable: "users", description: "Reference to the artist user profile" },
-            { name: "title", type: "VARCHAR(255)", description: "Heading of digital artwork" },
-            { name: "token_hash", type: "VARCHAR(66)", description: "Decentralized blockchain registry hash" },
-            { name: "image_cdn_url", type: "TEXT", description: "High resolution hosting path link" },
-            { name: "reserve_fee", type: "DECIMAL(18,4)", description: "Bidding start floor value in crypto/USD" }
-          ]
-        },
-        {
-          name: "Auction",
-          tableName: "auctions",
-          fields: [
-            { name: "artwork_id", type: "UUID", refTable: "artworks", description: "Reference to listed digital asset" },
-            { name: "bidding_start", type: "TIMESTAMP", description: "Time bidding room opens" },
-            { name: "bidding_end", type: "TIMESTAMP", description: "Time bidding room locks" },
-            { name: "status", type: "VARCHAR(50)", description: "Status: 'Upcoming', 'Live', 'Settled', 'Closed'" }
-          ]
-        },
-        {
-          name: "Bid",
-          tableName: "bids",
-          fields: [
-            { name: "auction_id", type: "UUID", refTable: "auctions", description: "Reference to active auction room" },
-            { name: "bidder_id", type: "UUID", refTable: "users", description: "Reference to bidding collector profile" },
-            { name: "bid_amount", type: "DECIMAL(18,4)", description: "Staked bidding token volume" },
-            { name: "placed_time", type: "TIMESTAMP", description: "Time transaction log was indexed" }
-          ]
-        }
-      ];
-    } else if (normalized.includes('prescription') || normalized.includes('doctor') || normalized.includes('patient') || normalized.includes('clinic') || normalized.includes('appointment') || normalized.includes('medical')) {
-      domainName = "Clinical Appointment & Digital Prescription System";
-      roles = ["Practitioner Doctor", "Medical Patient", "Reception Desk Admin", "Pharmacy Pharmacist"];
-      entities = [
-        {
-          name: "Clinic",
-          tableName: "clinics",
-          fields: [
-            { name: "name", type: "VARCHAR(255)", description: "Clinic facility branch name" },
-            { name: "address", type: "TEXT", description: "Clinic physical coordinates" },
-            { name: "contact_number", type: "VARCHAR(20)", description: "Direct telephone switchboard number" }
-          ]
-        },
-        {
-          name: "Appointment",
-          tableName: "appointments",
-          fields: [
-            { name: "patient_id", type: "UUID", refTable: "users", description: "Patient user reference" },
-            { name: "doctor_id", type: "UUID", refTable: "users", description: "Practitioner user reference" },
-            { name: "clinic_id", type: "UUID", refTable: "clinics", description: "Clinic facility unit" },
-            { name: "booking_time", type: "TIMESTAMP", description: "Date and hour scheduled" },
-            { name: "symptoms_summary", type: "TEXT", description: "Pre-appointment medical complaints notes" },
-            { name: "status", type: "VARCHAR(50)", description: "Status: 'Booked', 'Completed', 'Absent', 'Cancelled'" }
-          ]
-        },
-        {
-          name: "Prescription",
-          tableName: "prescriptions",
-          fields: [
-            { name: "appointment_id", type: "UUID", refTable: "appointments", description: "Reference to the clinical diagnosis session" },
-            { name: "doctor_id", type: "UUID", refTable: "users", description: "Issuing clinician" },
-            { name: "patient_id", type: "UUID", refTable: "users", description: "Target recipient patient" },
-            { name: "drug_name", type: "VARCHAR(255)", description: "Pharmaceutical drug designation" },
-            { name: "dosage_instructions", type: "TEXT", description: "Volume limits, schedules, and pharmacist cautions" },
-            { name: "is_dispensed", type: "BOOLEAN", description: "Pharmacy fulfillment checkout indicator" }
-          ]
-        }
-      ];
-    } else {
-      // DYNAMIC NLP GENERATOR FALLBACK
-      // Split nouns
-      const keywords = prompt
-        .replace(/[^\w\s]/g, '')
-        .split(/\s+/)
-        .filter(w => w.length > 3 && !['build', 'create', 'make', 'develop', 'want', 'with', 'using', 'that', 'should', 'need', 'platform', 'system', 'website', 'software', 'service', 'online', 'feature', 'page', 'user', 'profile'].includes(w.toLowerCase()));
-      
-      const distinctNouns = Array.from(new Set(keywords)).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-      
-      const rootNoun = distinctNouns[0] || "Item";
-      const secondaryNoun = distinctNouns[1] || "Process";
-      const tertiaryNoun = distinctNouns[2] || "Log";
-      
-      domainName = `${rootNoun} Management & tracking Engine`;
-      roles = [`${rootNoun} Creator`, `${rootNoun} Client`, "Central Coordinator"];
-      
-      entities = [
-        {
-          name: rootNoun,
-          tableName: rootNoun.toLowerCase() + "s",
-          fields: [
-            { name: "creator_id", type: "UUID", refTable: "users", description: "Owner user account ID reference" },
-            { name: "title", type: "VARCHAR(255)", description: `Title or name descriptor of the ${rootNoun}` },
-            { name: "description", type: "TEXT", description: `Full details content regarding the ${rootNoun}` },
-            { name: "status", type: "VARCHAR(50)", description: "Operational status tag tracking" }
-          ]
-        },
-        {
-          name: secondaryNoun,
-          tableName: secondaryNoun.toLowerCase() + "s",
-          fields: [
-            { name: `${rootNoun.toLowerCase()}_id`, type: "UUID", refTable: rootNoun.toLowerCase() + "s", description: `Reference to the parent ${rootNoun}` },
-            { name: "operator_id", type: "UUID", refTable: "users", description: "Assigned operator user ID reference" },
-            { name: "notes", type: "TEXT", description: `Logs and details of the ${secondaryNoun}` },
-            { name: "total_amount", type: "DECIMAL(10,2)", description: "Transaction cost value if applicable" }
-          ]
-        },
-        {
-          name: tertiaryNoun,
-          tableName: tertiaryNoun.toLowerCase() + "s",
-          fields: [
-            { name: `${secondaryNoun.toLowerCase()}_id`, type: "UUID", refTable: secondaryNoun.toLowerCase() + "s", description: `Reference to parent ${secondaryNoun}` },
-            { name: "rating_score", type: "INT", description: "Numerical feedback value" },
-            { name: "commentary", type: "TEXT", description: "Detailed feedback description text" }
+            { name: "reservation_id", type: "UUID", refTable: "reservations", description: "Reference to the completed stay reservation" },
+            { name: "reviewer_id", type: "UUID", refTable: "users", description: "Author submitting review rating" },
+            { name: "rating", type: "INT", description: "Review rating score rank (1 to 5)" },
+            { name: "comment", type: "TEXT", description: "Review summary text feedback" }
           ]
         }
       ];
     }
+    // 2. Ride-Sharing Marketplace (Uber style)
+    else if (normalized.includes('uber') || normalized.includes('ride-sharing') || normalized.includes('taxi') || normalized.includes('cab booking') || normalized.includes('ride sharing') || normalized.includes('driver matching')) {
+      domainName = "Ride-Sharing & Telemetry Marketplace";
+      roles = ["Rider Customer", "Driver Partner", "Platform Dispatcher"];
+      entities = [
+        {
+          name: "DriverProfile",
+          tableName: "driver_profiles",
+          fields: [
+            { name: "driver_id", type: "UUID", refTable: "users", description: "Link to user profile registered as a driver" },
+            { name: "license_number", type: "VARCHAR(100)", description: "Driver license ID" },
+            { name: "vehicle_info", type: "TEXT", description: "Vehicle model, make, color, and plate" },
+            { name: "is_online", type: "BOOLEAN", description: "Availability toggle to receive dispatch offers" },
+            { name: "rating_avg", type: "DECIMAL(3,2)", description: "Average rider feedback rating score" }
+          ]
+        },
+        {
+          name: "RideRequest",
+          tableName: "rides",
+          fields: [
+            { name: "rider_id", type: "UUID", refTable: "users", description: "Rider user reference placing the request" },
+            { name: "driver_id", type: "UUID", refTable: "users", description: "Assigned driver user reference" },
+            { name: "pickup_latitude", type: "DOUBLE PRECISION", description: "Pickup location latitude" },
+            { name: "pickup_longitude", type: "DOUBLE PRECISION", description: "Pickup location longitude" },
+            { name: "dropoff_latitude", type: "DOUBLE PRECISION", description: "Destination location latitude" },
+            { name: "dropoff_longitude", type: "DOUBLE PRECISION", description: "Destination location longitude" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Requested', 'Accepted', 'Arrived', 'InTransit', 'Completed', 'Cancelled'" }
+          ]
+        },
+        {
+          name: "Transaction",
+          tableName: "transactions",
+          fields: [
+            { name: "ride_id", type: "UUID", refTable: "rides", description: "Reference to the completed ride ticket" },
+            { name: "amount", type: "DECIMAL(10,2)", description: "Fare calculation invoice size" },
+            { name: "tip_amount", type: "DECIMAL(10,2)", description: "Rider tip amount (optional)" },
+            { name: "stripe_payment_id", type: "VARCHAR(255)", description: "Stripe payout payment intent" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Settled', 'Refunded'" }
+          ]
+        },
+        {
+          name: "Review",
+          tableName: "reviews",
+          fields: [
+            { name: "ride_id", type: "UUID", refTable: "rides", description: "Reference to the corresponding ride" },
+            { name: "reviewer_role", type: "VARCHAR(50)", description: "Reviewer identifier: 'Rider' or 'Driver'" },
+            { name: "rating", type: "INT", description: "Rating score rank (1 to 5)" },
+            { name: "comment", type: "TEXT", description: "Text feedback notes" }
+          ]
+        }
+      ];
+    }
+    // 3. Food Delivery Marketplace (Swiggy style)
+    else if (normalized.includes('swiggy') || normalized.includes('doordash') || normalized.includes('ubereats') || normalized.includes('food delivery') || normalized.includes('restaurant booking') || normalized.includes('delivery app')) {
+      domainName = "Food Delivery & Logistics Marketplace";
+      roles = ["Customer Consumer", "Restaurant Partner", "Delivery Agent", "Operations Manager"];
+      entities = [
+        {
+          name: "Restaurant",
+          tableName: "restaurants",
+          fields: [
+            { name: "owner_id", type: "UUID", refTable: "users", description: "Manager account owner ID reference" },
+            { name: "name", type: "VARCHAR(255)", description: "Restaurant business name" },
+            { name: "cuisine_type", type: "VARCHAR(100)", description: "Cuisine classification tag (e.g. Italian, Indian)" },
+            { name: "address", type: "TEXT", description: "Physical street location of kitchen" },
+            { name: "is_open", type: "BOOLEAN", description: "Active operations ordering toggle" }
+          ]
+        },
+        {
+          name: "MenuItem",
+          tableName: "menu_items",
+          fields: [
+            { name: "restaurant_id", type: "UUID", refTable: "restaurants", description: "Link to parent kitchen restaurant" },
+            { name: "name", type: "VARCHAR(255)", description: "Dish or item title" },
+            { name: "description", type: "TEXT", description: "Detailed dish preparation explanation" },
+            { name: "price", type: "DECIMAL(10,2)", description: "Cost per single serving in USD" }
+          ]
+        },
+        {
+          name: "Order",
+          tableName: "orders",
+          fields: [
+            { name: "customer_id", type: "UUID", refTable: "users", description: "Customer placing the order" },
+            { name: "restaurant_id", type: "UUID", refTable: "restaurants", description: "Target kitchen preparing the food" },
+            { name: "delivery_agent_id", type: "UUID", refTable: "users", description: "Assigned courier courier" },
+            { name: "total_price", type: "DECIMAL(10,2)", description: "Total checkout invoice cost" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Created', 'Preparing', 'ReadyForPickup', 'InTransit', 'Delivered', 'Cancelled'" }
+          ]
+        },
+        {
+          name: "DeliveryReceipt",
+          tableName: "deliveries",
+          fields: [
+            { name: "order_id", type: "UUID", refTable: "orders", description: "Reference to the delivery order" },
+            { name: "dropoff_photo_url", type: "TEXT", description: "Dropoff proof photo attachment URL" },
+            { name: "delivery_time", type: "TIMESTAMP", description: "Fulfillment delivery closure timestamp" }
+          ]
+        }
+      ];
+    }
+    // 4. Professional Social Network (LinkedIn style)
+    else if (normalized.includes('linkedin') || normalized.includes('social network') || normalized.includes('professional network') || normalized.includes('connections') || normalized.includes('job board') || normalized.includes('posts')) {
+      domainName = "Professional Social Networking Platform";
+      roles = ["Professional Member", "Company Recruiter", "System Moderator"];
+      entities = [
+        {
+          name: "MemberProfile",
+          tableName: "profiles",
+          fields: [
+            { name: "member_id", type: "UUID", refTable: "users", description: "Account identity owner reference" },
+            { name: "headline", type: "VARCHAR(255)", description: "Job title and career headline" },
+            { name: "summary", type: "TEXT", description: "Career summary profile description" },
+            { name: "industry", type: "VARCHAR(150)", description: "Industrial domain categorization" },
+            { name: "skills_list", type: "TEXT[]", description: "Certified professional capabilities array" }
+          ]
+        },
+        {
+          name: "Connection",
+          tableName: "connections",
+          fields: [
+            { name: "requester_id", type: "UUID", refTable: "users", description: "Member initiating invitation request" },
+            { name: "receiver_id", type: "UUID", refTable: "users", description: "Member receiving invitation request" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Pending', 'Accepted', 'Blocked'" }
+          ]
+        },
+        {
+          name: "Post",
+          tableName: "posts",
+          fields: [
+            { name: "author_id", type: "UUID", refTable: "users", description: "Member posting the text block" },
+            { name: "content_text", type: "TEXT", description: "Text content and description of post update" },
+            { name: "media_url", type: "TEXT", description: "Linked photo or document URL" },
+            { name: "likes_count", type: "INT", description: "Aggregated member recommendation counts" }
+          ]
+        },
+        {
+          name: "Message",
+          tableName: "messages",
+          fields: [
+            { name: "sender_id", type: "UUID", refTable: "users", description: "Member posting message text" },
+            { name: "receiver_id", type: "UUID", refTable: "users", description: "Target recipient member profile" },
+            { name: "content_text", type: "TEXT", description: "Direct message content string" }
+          ]
+        }
+      ];
+    }
+    // 5. E-Commerce Marketplace (Amazon style)
+    else if (normalized.includes('amazon') || normalized.includes('e-commerce') || normalized.includes('ecommerce') || normalized.includes('online shop') || normalized.includes('checkout store')) {
+      domainName = "B2C E-Commerce Marketplace";
+      roles = ["Shopper Buyer", "Merchant Seller", "Logistics Operations Manager"];
+      entities = [
+        {
+          name: "ProductListing",
+          tableName: "products",
+          fields: [
+            { name: "seller_id", type: "UUID", refTable: "users", description: "Merchant account selling the item" },
+            { name: "title", type: "VARCHAR(255)", description: "Designation title of product" },
+            { name: "description", type: "TEXT", description: "Specifications, material, and details text" },
+            { name: "price", type: "DECIMAL(10,2)", description: "Standard listing price in USD" },
+            { name: "stock_quantity", type: "INT", description: "Stock inventory count" }
+          ]
+        },
+        {
+          name: "ShoppingSession",
+          tableName: "carts",
+          fields: [
+            { name: "buyer_id", type: "UUID", refTable: "users", description: "Shopper owner profile" },
+            { name: "items_json", type: "JSONB", description: "Temporary shopping catalog items list" }
+          ]
+        },
+        {
+          name: "Order",
+          tableName: "orders",
+          fields: [
+            { name: "buyer_id", type: "UUID", refTable: "users", description: "Customer buyer details" },
+            { name: "total_amount", type: "DECIMAL(10,2)", description: "Grand checkout cost size" },
+            { name: "shipping_address", type: "TEXT", description: "Physical shipping address details" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Paid', 'Shipped', 'Delivered', 'Returned'" }
+          ]
+        },
+        {
+          name: "Review",
+          tableName: "reviews",
+          fields: [
+            { name: "product_id", type: "UUID", refTable: "products", description: "Product item reviewed" },
+            { name: "reviewer_id", type: "UUID", refTable: "users", description: "Shopper buyer posting review" },
+            { name: "rating", type: "INT", description: "Product rating score range (1 to 5)" },
+            { name: "comment", type: "TEXT", description: "Product review detail text" }
+          ]
+        }
+      ];
+    }
+    // 6. Fintech Payment Ledger (Stripe style)
+    else if (normalized.includes('stripe') || normalized.includes('fintech') || normalized.includes('ledger') || normalized.includes('payments api') || normalized.includes('payouts') || normalized.includes('wallet')) {
+      domainName = "Digital Ledger & Payments API";
+      roles = ["Merchant Business", "Payer Customer", "Financial Compliance Auditor"];
+      entities = [
+        {
+          name: "MerchantWallet",
+          tableName: "wallets",
+          fields: [
+            { name: "merchant_id", type: "UUID", refTable: "users", description: "Account owner merchant link" },
+            { name: "balance", type: "DECIMAL(16,4)", description: "Wallet ledger balance in account currency" },
+            { name: "currency", type: "VARCHAR(10)", description: "System currency code (e.g. USD, EUR)" },
+            { name: "stripe_account_id", type: "VARCHAR(100)", description: "Stripe payout merchant ID mapping" }
+          ]
+        },
+        {
+          name: "PaymentTransaction",
+          tableName: "transactions",
+          fields: [
+            { name: "wallet_id", type: "UUID", refTable: "wallets", description: "Target recipient ledger wallet" },
+            { name: "amount", type: "DECIMAL(16,4)", description: "Financial checkout charge size" },
+            { name: "currency", type: "VARCHAR(10)", description: "Transaction currency unit" },
+            { name: "source_type", type: "VARCHAR(50)", description: "Options: 'CreditCard', 'BankTransfer'" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Settled', 'Failed'" }
+          ]
+        },
+        {
+          name: "Payout",
+          tableName: "payouts",
+          fields: [
+            { name: "wallet_id", type: "UUID", refTable: "wallets", description: "Source ledger wallet" },
+            { name: "amount", type: "DECIMAL(16,4)", description: "Transferred bank settlement volume" },
+            { name: "bank_account_info", type: "TEXT", description: "Masked bank account details" }
+          ]
+        },
+        {
+          name: "Refund",
+          tableName: "refunds",
+          fields: [
+            { name: "transaction_id", type: "UUID", refTable: "transactions", description: "Reference to original charge transaction" },
+            { name: "amount", type: "DECIMAL(16,4)", description: "Refund payload volume size" },
+            { name: "reason", type: "TEXT", description: "Refund compliance request notes" }
+          ]
+        }
+      ];
+    }
+    // 7. Collaborative Workspace (Notion style)
+    else if (normalized.includes('notion') || normalized.includes('document workspace') || normalized.includes('pages') || normalized.includes('wiki') || normalized.includes('collaborative workspace')) {
+      domainName = "Collaborative SaaS Document Workspace";
+      roles = ["Workspace Owner", "Workspace Editor", "Workspace Viewer"];
+      entities = [
+        {
+          name: "Workspace",
+          tableName: "workspaces",
+          fields: [
+            { name: "owner_id", type: "UUID", refTable: "users", description: "User creating and billing the workspace" },
+            { name: "name", type: "VARCHAR(150)", description: "Designation title of organization wiki" },
+            { name: "plan_tier", type: "VARCHAR(50)", description: "Subscription level: 'Free', 'Pro', 'Enterprise'" }
+          ]
+        },
+        {
+          name: "DocumentPage",
+          tableName: "pages",
+          fields: [
+            { name: "workspace_id", type: "UUID", refTable: "workspaces", description: "Parent workspace link" },
+            { name: "parent_page_id", type: "UUID", refTable: "pages", description: "Self reference mapping parent wiki page" },
+            { name: "title", type: "VARCHAR(255)", description: "Title heading of page" },
+            { name: "content_json", type: "JSONB", description: "Rich text block structure editor payload" }
+          ]
+        },
+        {
+          name: "Comment",
+          tableName: "comments",
+          fields: [
+            { name: "page_id", type: "UUID", refTable: "pages", description: "Target document page" },
+            { name: "author_id", type: "UUID", refTable: "users", description: "Teammate commenting" },
+            { name: "content_text", type: "TEXT", description: "Comment content detail string" }
+          ]
+        },
+        {
+          name: "Membership",
+          tableName: "memberships",
+          fields: [
+            { name: "workspace_id", type: "UUID", refTable: "workspaces", description: "Target workspace wiki" },
+            { name: "user_id", type: "UUID", refTable: "users", description: "Invited workspace collaborator" },
+            { name: "member_role", type: "VARCHAR(50)", description: "Options: 'Owner', 'Editor', 'Viewer'" }
+          ]
+        }
+      ];
+    }
+    // 8. AI Coaching & Scheduling Platform (Fitness Coach style)
+    else if (normalized.includes('fitness') || normalized.includes('coach') || normalized.includes('gym') || normalized.includes('trainer') || normalized.includes('workout') || normalized.includes('meal')) {
+      domainName = "AI Fitness & Coaching Platform";
+      roles = ["Fitness Client", "AI Coaching Agent", "Human Trainer Auditor"];
+      entities = [
+        {
+          name: "ClientProfile",
+          tableName: "client_profiles",
+          fields: [
+            { name: "client_id", type: "UUID", refTable: "users", description: "Account owner client user profile link" },
+            { name: "goals_summary", type: "TEXT", description: "Weight, calorie limits, or fitness targets overview" },
+            { name: "allergies_list", type: "TEXT[]", description: "Allergies array preventing dietary choices" },
+            { name: "injury_logs", type: "TEXT[]", description: "Injuries list restricting workout exercises" }
+          ]
+        },
+        {
+          name: "CoachingProgram",
+          tableName: "coaching_programs",
+          fields: [
+            { name: "client_id", type: "UUID", refTable: "users", description: "Reference to target program client" },
+            { name: "week_number", type: "INT", description: "Chronological week index of coaching program" },
+            { name: "dietary_instructions", type: "JSONB", description: "Daily macros, ingredients, and recipes objects" },
+            { name: "is_active", type: "BOOLEAN", description: "Active program monitoring index" }
+          ]
+        },
+        {
+          name: "WorkoutSchedule",
+          tableName: "workout_schedules",
+          fields: [
+            { name: "program_id", type: "UUID", refTable: "coaching_programs", description: "Reference to parent week program" },
+            { name: "day_of_week", type: "VARCHAR(50)", description: "Day label (e.g. 'Monday')" },
+            { name: "exercises_json", type: "JSONB", description: "List of exercise items containing sets and reps" },
+            { name: "is_completed", type: "BOOLEAN", description: "Completion tracker indicator" }
+          ]
+        },
+        {
+          name: "ProgressLog",
+          tableName: "progress_logs",
+          fields: [
+            { name: "client_id", type: "UUID", refTable: "users", description: "Reference to client logs profile" },
+            { name: "log_date", type: "DATE", description: "Log recording calendar date" },
+            { name: "recorded_weight", type: "DECIMAL(5,2)", description: "Weight index indicator" },
+            { name: "compliance_score", type: "DECIMAL(5,2)", description: "Schedules checks compliance metrics" }
+          ]
+        }
+      ];
+    }
+    // DYNAMIC PARSER FALLBACKS (Enforcing strict, domain-appropriate names instead of generic "Records")
+    else {
+      // Is it a Marketplace?
+      if (normalized.includes('buy') || normalized.includes('sell') || normalized.includes('trade') || normalized.includes('marketplace') || normalized.includes('shop') || normalized.includes('catalog') || normalized.includes('store') || normalized.includes('product')) {
+        domainName = "Peer-to-Peer Product Marketplace";
+        roles = ["Merchant Seller", "Customer Buyer", "Platform Moderator"];
+        entities = [
+          {
+            name: "ProductListing",
+            tableName: "product_listings",
+            fields: [
+              { name: "seller_id", type: "UUID", refTable: "users", description: "Merchant account listing the item" },
+              { name: "title", type: "VARCHAR(255)", description: "Designation title of product" },
+              { name: "description", type: "TEXT", description: "Details specifications text" },
+              { name: "price", type: "DECIMAL(10,2)", description: "Listing cost value in USD" }
+            ]
+          },
+          {
+            name: "OrderTransaction",
+            tableName: "orders",
+            fields: [
+              { name: "listing_id", type: "UUID", refTable: "product_listings", description: "Reference to parent product item" },
+              { name: "buyer_id", type: "UUID", refTable: "users", description: "Shopper buyer user profile link" },
+              { name: "stripe_payment_id", type: "VARCHAR(255)", description: "Payment gateway validation charge ID" },
+              { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Settled', 'Refunded'" }
+            ]
+          },
+          {
+            name: "EscrowPayment",
+            tableName: "payments",
+            fields: [
+              { name: "order_id", type: "UUID", refTable: "orders", description: "Reference to corresponding order" },
+              { name: "amount", type: "DECIMAL(10,2)", description: "Ledger transaction charge volume" },
+              { name: "payout_status", type: "VARCHAR(50)", description: "Options: 'Held', 'Released', 'Refunded'" }
+            ]
+          },
+          {
+            name: "CustomerReview",
+            tableName: "reviews",
+            fields: [
+              { name: "listing_id", type: "UUID", refTable: "product_listings", description: "Product reviewed" },
+              { name: "reviewer_id", type: "UUID", refTable: "users", description: "Shopper buyer posting review" },
+              { name: "rating", type: "INT", description: "Product rating score rank (1 to 5)" }
+            ]
+          }
+        ];
+      }
+      // Is it a Booking/Scheduling platform?
+      else if (normalized.includes('book') || normalized.includes('reserve') || normalized.includes('calendar') || normalized.includes('schedule') || normalized.includes('appointment') || normalized.includes('date') || normalized.includes('slot') || normalized.includes('loan')) {
+        domainName = "On-Demand Resource Booking Hub";
+        roles = ["Renter Customer", "Host Owner Provider", "Operations Administrator"];
+        entities = [
+          {
+            name: "ResourceListing",
+            tableName: "resource_listings",
+            fields: [
+              { name: "owner_id", type: "UUID", refTable: "users", description: "Host account owner reference" },
+              { name: "title", type: "VARCHAR(255)", description: "Designation title of booked resource" },
+              { name: "hourly_rate", type: "DECIMAL(10,2)", description: "Charge fee size per single hour" }
+            ]
+          },
+          {
+            name: "ReservationBooking",
+            tableName: "reservations",
+            fields: [
+              { name: "resource_id", type: "UUID", refTable: "resource_listings", description: "Booked resource reference" },
+              { name: "renter_id", type: "UUID", refTable: "users", description: "Renter customer user profile link" },
+              { name: "start_time", type: "TIMESTAMP", description: "Booking calendar start date and hour" },
+              { name: "end_time", type: "TIMESTAMP", description: "Booking calendar end date and hour" },
+              { name: "status", type: "VARCHAR(50)", description: "Status: 'Reserved', 'Active', 'Completed', 'Cancelled'" }
+            ]
+          },
+          {
+            name: "CancellationRecord",
+            tableName: "cancellations",
+            fields: [
+              { name: "reservation_id", type: "UUID", refTable: "reservations", description: "Reference to cancelled booking" },
+              { name: "cancelled_by_id", type: "UUID", refTable: "users", description: "User who cancelled reservation" },
+              { name: "refund_amount", type: "DECIMAL(10,2)", description: "Refund payload invoice volume" }
+            ]
+          },
+          {
+            name: "AvailabilitySchedule",
+            tableName: "availability_schedules",
+            fields: [
+              { name: "resource_id", type: "UUID", refTable: "resource_listings", description: "Parent resource" },
+              { name: "day_of_week", type: "VARCHAR(50)", description: "Day label (e.g. 'Monday')" },
+              { name: "open_hour", type: "VARCHAR(10)", description: "Opening hour stamp" },
+              { name: "close_hour", type: "VARCHAR(10)", description: "Closing hour stamp" }
+            ]
+          }
+        ];
+      }
+      // Is it a Social network?
+      else if (normalized.includes('social') || normalized.includes('friend') || normalized.includes('network') || normalized.includes('connect') || normalized.includes('profile') || normalized.includes('chat') || normalized.includes('message') || normalized.includes('post')) {
+        domainName = "Social Networking & Media Platform";
+        roles = ["Network Member", "Content Moderator", "System Administrator"];
+        entities = [
+          {
+            name: "MemberProfile",
+            tableName: "member_profiles",
+            fields: [
+              { name: "member_id", type: "UUID", refTable: "users", description: "Account identity owner reference" },
+              { name: "display_name", type: "VARCHAR(150)", description: "Public screen name of member" },
+              { name: "bio", type: "TEXT", description: "Profile bio description" }
+            ]
+          },
+          {
+            name: "MemberConnection",
+            tableName: "connections",
+            fields: [
+              { name: "requester_id", type: "UUID", refTable: "users", description: "Initiating member" },
+              { name: "receiver_id", type: "UUID", refTable: "users", description: "Target member accepting connection" },
+              { name: "status", type: "VARCHAR(50)", description: "Status: 'Pending', 'Connected', 'Blocked'" }
+            ]
+          },
+          {
+            name: "MemberPost",
+            tableName: "posts",
+            fields: [
+              { name: "author_id", type: "UUID", refTable: "users", description: "Member posting content" },
+              { name: "content_text", type: "TEXT", description: "Main text feed paragraph" },
+              { name: "media_url", type: "TEXT", description: "Link hosting photo media" }
+            ]
+          },
+          {
+            name: "DirectMessage",
+            tableName: "messages",
+            fields: [
+              { name: "sender_id", type: "UUID", refTable: "users", description: "Member posting message text" },
+              { name: "receiver_id", type: "UUID", refTable: "users", description: "Recipient member profile link" },
+              { name: "content_text", type: "TEXT", description: "Direct message content string" }
+            ]
+          }
+        ];
+      }
+      // Fallback SaaS
+      else {
+        domainName = "B2B SaaS Hub & Portal";
+        roles = ["Account Administrator", "Staff Teammate", "System Auditor"];
+        entities = [
+          {
+            name: "OrganizationProfile",
+            tableName: "organizations",
+            fields: [
+              { name: "name", type: "VARCHAR(255)", description: "B2B company or organization name" },
+              { name: "billing_tier", type: "VARCHAR(50)", description: "SaaS plan: 'Standard', 'Premium', 'Enterprise'" }
+            ]
+          },
+          {
+            name: "StaffMembership",
+            tableName: "memberships",
+            fields: [
+              { name: "org_id", type: "UUID", refTable: "organizations", description: "Parent organization link" },
+              { name: "user_id", type: "UUID", refTable: "users", description: "Teammate account reference" },
+              { name: "member_role", type: "VARCHAR(50)", description: "Teammate permission level: 'Admin', 'Staff'" }
+            ]
+          },
+          {
+            name: "IntegrationConnector",
+            tableName: "integrations",
+            fields: [
+              { name: "org_id", type: "UUID", refTable: "organizations", description: "Parent organization link" },
+              { name: "service_name", type: "VARCHAR(150)", description: "Name of external service (e.g. Stripe, Twilio)" },
+              { name: "sync_status", type: "VARCHAR(50)", description: "Integration sync status: 'Connected', 'Disconnected'" }
+            ]
+          },
+          {
+            name: "SaaSReport",
+            tableName: "reports",
+            fields: [
+              { name: "org_id", type: "UUID", refTable: "organizations", description: "Parent organization link" },
+              { name: "created_by", type: "UUID", refTable: "users", description: "Staff teammate who generated report" },
+              { name: "title", type: "VARCHAR(255)", description: "Designation title of report" },
+              { name: "configuration_json", type: "JSONB", description: "Metric settings object layout configurations" }
+            ]
+          }
+        ];
+      }
+    }
     
-    // Scan integrations from tags
+    // Evaluate integrations from tags
     if (normalized.includes('payment') || normalized.includes('buy') || normalized.includes('sell') || normalized.includes('checkout') || normalized.includes('stripe') || normalized.includes('billing') || normalized.includes('price')) {
       integrations.push('Stripe Connect Payments');
     }
@@ -520,9 +870,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // =========================================
-  // BLUEPRINT COMPILER
-  // =========================================
   function compileBlueprintFromPrompt(prompt) {
     // 1. Run Semantic Analyzer
     const semantic = extractSemanticDetails(prompt);
@@ -744,14 +1091,14 @@ const UserSchema = new Schema({
     });
 
     // 5. Compile User Stories
-    const defaultVerbList = ["search and review listing elements of", "schedule and instantiate booking requests for", "log audit data updates on", "view dashboard reports of"];
+    const defaultVerbList = ["search and review listing elements of", "schedule and instantiate booking requests for", "log updates on", "view dashboard reports of"];
     semantic.roles.forEach((role, rIdx) => {
       semantic.entities.forEach((entity, eIdx) => {
         const verb = defaultVerbList[(rIdx + eIdx) % defaultVerbList.length];
         data.userStories.push({
           as: role,
           want: `${verb} ${entity.tableName}`,
-          so: `I can manage operational tasks, ensure data consistency, and review compliance logs without manual intervention`
+          so: `I can manage operational tasks, ensure data consistency, and review compliance checks without manual intervention`
         });
       });
     });
@@ -807,7 +1154,7 @@ const UserSchema = new Schema({
 
     semantic.integrations.forEach(integration => {
       if (integration.includes('Stripe')) {
-        data.techStack.push({ layer: "Payment Integrations", tech: "Stripe Connect API", reason: "Processes secure customer payments, handles checkout escrows, and routes developer payouts." });
+        data.techStack.push({ layer: "Payment Integrations", tech: "Stripe Connect API", reason: "Processes secure customer payments, handles checkout escrows, and routes payouts." });
       }
       if (integration.includes('Socket.io')) {
         data.techStack.push({ layer: "Realtime Messaging", tech: "Socket.io WebSockets", reason: "Synchronizes chat strings and vehicle location coordinates instantly between connected nodes." });
@@ -1133,12 +1480,12 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
     `;
   }
 
+  // Tech Stack, Roadmap, Vibe, Diagram sections same rendering helpers
   function renderTechStackSection() {
     const container = document.querySelector('#sec-techstack .section-content-render');
     const stack = generatedData.techStack;
     container.innerHTML = `
       <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Below is the recommended technology stack selected specifically for this application's requirements, focusing on developer productivity, performance, and scaling costs:</p>
-      
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
         ${stack.map(tech => `
           <div class="feature-card" style="padding: 1.5rem; background: var(--bg-tertiary);">
@@ -1161,7 +1508,6 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
         <h4>Estimated Project Duration</h4>
         <p>Approx. <strong>${data.timeline}</strong> using 1 senior fullstack dev (or 2-3 devs collaborating with Vibe Coding tools).</p>
       </div>
-
       <div class="info-grid">
         <div class="info-card" style="border-top: 3px solid var(--secondary);">
           <h4>Phase 1: MVP Core (Weeks 1-3)</h4>
@@ -1188,10 +1534,8 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
   function renderVibeSection() {
     const container = document.querySelector('#sec-vibe .section-content-render');
     const prompt = generatedData.vibeCoding[activeVibePrompt];
-    
     container.innerHTML = `
       <p style="color: var(--text-secondary); margin-bottom: 1rem;">Select a stage below, copy the pre-tuned prompt, and paste it directly into Cursor, Gemini, Claude, or Copilot Chat to initialize your project code:</p>
-      
       <div class="prompt-copy-container">
         <div class="prompt-box" id="vibe-active-prompt">${escapeHTML(prompt)}</div>
         <div style="display: flex; justify-content: flex-end;">
@@ -1213,7 +1557,6 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
     container.innerHTML = `
       <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Below is the text-based systems architecture and flow diagram representing the request routing topology:</p>
       <div class="ascii-architecture-art">${diag}</div>
-      
       <div class="info-card" style="width: 100%;">
         <h4>Architecture Details</h4>
         <ul>
@@ -1226,16 +1569,6 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
       </div>
     `;
   }
-
-  // Copy helper inside code block (pulls innerText of element)
-  window.copyCodeContent = function(elId) {
-    const codeEl = document.getElementById(elId);
-    navigator.clipboard.writeText(codeEl.innerText).then(() => {
-      showToast('Copied to clipboard successfully!');
-    }).catch(err => {
-      showToast('Failed to copy text.', 'error');
-    });
-  };
 
   // Helper to escape HTML characters
   function escapeHTML(str) {
@@ -1262,7 +1595,7 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
         md += `* **Product Type**: ${generatedData.label}\n`;
         md += `* **Value Proposition**: ${generatedData.executive.valueProp}\n\n`;
         md += `### Description\n${generatedData.executive.description}\n\n`;
-        md += `### Target Users\n`;
+        md += `### Target Users / System Roles\n`;
         generatedData.executive.targetUsers.forEach(u => md += `* ${u}\n`);
         md += `\n### Business Model Suggestions\n`;
         generatedData.executive.businessModel.forEach(b => md += `* ${b}\n`);
