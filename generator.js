@@ -14,6 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const specProductName = document.getElementById('spec-product-name');
   const specProductType = document.getElementById('spec-product-type');
+  const analysisView = document.getElementById('analysis-view');
+  const continueBtn = document.getElementById('continue-btn');
+  const refineIdeaBtn = document.getElementById('refine-idea-btn');
+  const analysisCategory = document.getElementById('analysis-category');
+  const analysisCompetitors = document.getElementById('analysis-competitors');
+  const analysisRoles = document.getElementById('analysis-roles');
+  const analysisEntities = document.getElementById('analysis-entities');
+  const analysisRevenue = document.getElementById('analysis-revenue');
   
   const loadingTitle = document.getElementById('loading-title');
   const progressbarFill = document.getElementById('progressbar-fill');
@@ -89,6 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Reset Button Handler
   newSpecBtn.addEventListener('click', () => {
     blueprintView.classList.remove('active');
+    analysisView.classList.remove('active');
+    inputView.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  continueBtn.addEventListener('click', () => {
+    analysisView.classList.remove('active');
+    populateBlueprintView();
+    blueprintView.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  refineIdeaBtn.addEventListener('click', () => {
+    analysisView.classList.remove('active');
     inputView.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
@@ -204,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================
   function startSimulation(prompt) {
     const steps = [
-      { id: 'step-0', title: 'Analyzing product idea and key requirements...', duration: 1000 },
+      { id: 'step-0', title: 'Performing business domain analysis and idea classification...', duration: 1000 },
       { id: 'step-1', title: 'Designing product requirements document...', duration: 1100 },
       { id: 'step-2', title: 'Creating SQL & NoSQL database schemas...', duration: 1100 },
       { id: 'step-3', title: 'Designing RESTful API specifications...', duration: 1100 },
@@ -225,14 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function runNextStep() {
       if (currentStepIndex >= steps.length) {
-        // Simulation finished, build data and present
+        // Simulation finished, build data and present analysis before generating the full blueprint
         progressbarFill.style.width = '100%';
         setTimeout(() => {
           generatedData = compileBlueprintFromPrompt(prompt);
-          populateBlueprintView();
+          populateAnalysisView();
           
           loadingView.classList.remove('active');
-          blueprintView.classList.add('active');
+          analysisView.classList.add('active');
         }, 300);
         return;
       }
@@ -276,11 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let roles = [];
     let entities = [];
     let integrations = [];
+    let coreEntities = [];
+    let revenueModel = "Platform commission with transaction fees and optional premium service tiers.";
     
     // 1. Vacation Rental Marketplace (Airbnb style)
     if (normalized.includes('airbnb') || normalized.includes('vacation rental') || normalized.includes('hotel') || normalized.includes('room booking') || normalized.includes('stay') || normalized.includes('property booking')) {
       domainName = "Vacation Rental Marketplace";
-      roles = ["Guest Renter", "Host Property Owner", "Operations Auditor"];
+      roles = ["Guest Renter", "Host Property Owner", "Platform Operations Lead"];
+      coreEntities = ["Guests", "Hosts", "Properties", "Bookings", "Reviews", "Payments", "Availability Calendars", "Wishlists"];
+      revenueModel = "Commission per booking plus premium host services and promotional listing upgrades.";
       entities = [
         {
           name: "PropertyListing",
@@ -309,13 +335,23 @@ document.addEventListener('DOMContentLoaded', () => {
           ]
         },
         {
-          name: "Cancellation",
+          name: "BookingCancellation",
           tableName: "cancellations",
           fields: [
             { name: "reservation_id", type: "UUID", refTable: "reservations", description: "Reference to the cancelled stay booking" },
             { name: "cancelled_by_id", type: "UUID", refTable: "users", description: "User ID who triggered the cancellation" },
-            { name: "refund_amount", type: "DECIMAL(10,2)", description: "Stripe escrow refund payload amount" },
+            { name: "refund_amount", type: "DECIMAL(10,2)", description: "Refund amount issued for the cancelled booking" },
             { name: "reason", type: "TEXT", description: "Cancellation explanation details" }
+          ]
+        },
+        {
+          name: "Payment",
+          tableName: "payments",
+          fields: [
+            { name: "reservation_id", type: "UUID", refTable: "reservations", description: "Booking reference for payment settlement" },
+            { name: "amount", type: "DECIMAL(10,2)", description: "Total payment amount for the reservation" },
+            { name: "payment_method", type: "VARCHAR(100)", description: "Payment method type: 'Card', 'Wallet', 'GiftCard'" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Captured', 'Refunded'" }
           ]
         },
         {
@@ -332,8 +368,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // 2. Ride-Sharing Marketplace (Uber style)
     else if (normalized.includes('uber') || normalized.includes('ride-sharing') || normalized.includes('taxi') || normalized.includes('cab booking') || normalized.includes('ride sharing') || normalized.includes('driver matching')) {
-      domainName = "Ride-Sharing & Telemetry Marketplace";
-      roles = ["Rider Customer", "Driver Partner", "Platform Dispatcher"];
+      domainName = "Ride-Sharing Marketplace";
+      roles = ["Rider Customer", "Driver Partner", "Fleet Operations Manager"];
+      coreEntities = ["Riders", "Drivers", "Rides", "Vehicles", "Payments", "Ratings"];
+      revenueModel = "A commission-based fare share model with surge pricing and driver payout fees.";
       entities = [
         {
           name: "DriverProfile",
@@ -347,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ]
         },
         {
-          name: "RideRequest",
+          name: "Ride",
           tableName: "rides",
           fields: [
             { name: "rider_id", type: "UUID", refTable: "users", description: "Rider user reference placing the request" },
@@ -360,32 +398,44 @@ document.addEventListener('DOMContentLoaded', () => {
           ]
         },
         {
-          name: "Transaction",
-          tableName: "transactions",
+          name: "Vehicle",
+          tableName: "vehicles",
           fields: [
-            { name: "ride_id", type: "UUID", refTable: "rides", description: "Reference to the completed ride ticket" },
-            { name: "amount", type: "DECIMAL(10,2)", description: "Fare calculation invoice size" },
-            { name: "tip_amount", type: "DECIMAL(10,2)", description: "Rider tip amount (optional)" },
-            { name: "stripe_payment_id", type: "VARCHAR(255)", description: "Stripe payout payment intent" },
-            { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Settled', 'Refunded'" }
+            { name: "driver_id", type: "UUID", refTable: "users", description: "Driver assigned to this vehicle" },
+            { name: "make", type: "VARCHAR(100)", description: "Vehicle manufacturer" },
+            { name: "model", type: "VARCHAR(100)", description: "Vehicle model name" },
+            { name: "license_plate", type: "VARCHAR(50)", description: "Vehicle registration plate" },
+            { name: "capacity", type: "INT", description: "Passenger seating capacity" }
           ]
         },
         {
-          name: "Review",
-          tableName: "reviews",
+          name: "Payment",
+          tableName: "payments",
+          fields: [
+            { name: "ride_id", type: "UUID", refTable: "rides", description: "Reference to the completed ride" },
+            { name: "amount", type: "DECIMAL(10,2)", description: "Final fare amount" },
+            { name: "tip_amount", type: "DECIMAL(10,2)", description: "Driver tip amount" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Captured', 'Refunded'" }
+          ]
+        },
+        {
+          name: "Rating",
+          tableName: "ratings",
           fields: [
             { name: "ride_id", type: "UUID", refTable: "rides", description: "Reference to the corresponding ride" },
-            { name: "reviewer_role", type: "VARCHAR(50)", description: "Reviewer identifier: 'Rider' or 'Driver'" },
-            { name: "rating", type: "INT", description: "Rating score rank (1 to 5)" },
-            { name: "comment", type: "TEXT", description: "Text feedback notes" }
+            { name: "reviewer_role", type: "VARCHAR(50)", description: "Reviewer identity: 'Rider' or 'Driver'" },
+            { name: "score", type: "INT", description: "Rating score rank (1 to 5)" },
+            { name: "comment", type: "TEXT", description: "Feedback notes" }
           ]
         }
       ];
     }
     // 3. Food Delivery Marketplace (Swiggy style)
     else if (normalized.includes('swiggy') || normalized.includes('doordash') || normalized.includes('ubereats') || normalized.includes('food delivery') || normalized.includes('restaurant booking') || normalized.includes('delivery app')) {
-      domainName = "Food Delivery & Logistics Marketplace";
-      roles = ["Customer Consumer", "Restaurant Partner", "Delivery Agent", "Operations Manager"];
+      domainName = "Food Delivery Marketplace";
+      roles = ["Customer", "Restaurant Partner", "Delivery Agent", "Operations Manager"];
+      coreEntities = ["Customers", "Restaurants", "Menu Items", "Orders", "Deliveries", "Payments", "Reviews"];
+      revenueModel = "Order commissions plus delivery fees and restaurant service charges.";
       entities = [
         {
           name: "Restaurant",
@@ -420,20 +470,34 @@ document.addEventListener('DOMContentLoaded', () => {
           ]
         },
         {
-          name: "DeliveryReceipt",
+          name: "DeliveryAssignment",
           tableName: "deliveries",
           fields: [
             { name: "order_id", type: "UUID", refTable: "orders", description: "Reference to the delivery order" },
-            { name: "dropoff_photo_url", type: "TEXT", description: "Dropoff proof photo attachment URL" },
-            { name: "delivery_time", type: "TIMESTAMP", description: "Fulfillment delivery closure timestamp" }
+            { name: "delivery_agent_id", type: "UUID", refTable: "users", description: "Assigned courier for the order" },
+            { name: "pickup_time", type: "TIMESTAMP", description: "Time courier picked up the order" },
+            { name: "dropoff_time", type: "TIMESTAMP", description: "Time courier completed the dropoff" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Assigned', 'PickedUp', 'InTransit', 'Delivered'" }
+          ]
+        },
+        {
+          name: "Payment",
+          tableName: "payments",
+          fields: [
+            { name: "order_id", type: "UUID", refTable: "orders", description: "Reference to the paid order" },
+            { name: "amount", type: "DECIMAL(10,2)", description: "Total amount paid by the customer" },
+            { name: "fee_type", type: "VARCHAR(50)", description: "Fee type: 'Delivery', 'Service', 'Tax'" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Authorized', 'Settled', 'Refunded'" }
           ]
         }
       ];
     }
     // 4. Professional Social Network (LinkedIn style)
     else if (normalized.includes('linkedin') || normalized.includes('social network') || normalized.includes('professional network') || normalized.includes('connections') || normalized.includes('job board') || normalized.includes('posts')) {
-      domainName = "Professional Social Networking Platform";
-      roles = ["Professional Member", "Company Recruiter", "System Moderator"];
+      domainName = "Professional Networking Platform";
+      roles = ["Member", "Recruiter", "Community Moderator"];
+      coreEntities = ["Members", "Profiles", "Posts", "Connections", "Jobs", "Messages"];
+      revenueModel = "Premium subscriptions and sponsored job postings with talent sourcing fees.";
       entities = [
         {
           name: "MemberProfile",
@@ -473,13 +537,26 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "receiver_id", type: "UUID", refTable: "users", description: "Target recipient member profile" },
             { name: "content_text", type: "TEXT", description: "Direct message content string" }
           ]
+        },
+        {
+          name: "JobListing",
+          tableName: "jobs",
+          fields: [
+            { name: "employer_id", type: "UUID", refTable: "users", description: "Recruiter or employer posting the job" },
+            { name: "title", type: "VARCHAR(255)", description: "Job title" },
+            { name: "description", type: "TEXT", description: "Job responsibilities and qualifications" },
+            { name: "location", type: "VARCHAR(255)", description: "Job location or remote indication" },
+            { name: "employment_type", type: "VARCHAR(50)", description: "Type: 'Full-time', 'Contract', 'Part-time'" }
+          ]
         }
       ];
     }
     // 5. E-Commerce Marketplace (Amazon style)
     else if (normalized.includes('amazon') || normalized.includes('e-commerce') || normalized.includes('ecommerce') || normalized.includes('online shop') || normalized.includes('checkout store')) {
-      domainName = "B2C E-Commerce Marketplace";
-      roles = ["Shopper Buyer", "Merchant Seller", "Logistics Operations Manager"];
+      domainName = "E-Commerce Marketplace";
+      roles = ["Shopper", "Seller", "Logistics Manager"];
+      coreEntities = ["Products", "Carts", "Orders", "Payments", "Shipments", "Reviews"];
+      revenueModel = "Marketplace commissions plus fulfillment and promotional listing fees.";
       entities = [
         {
           name: "ProductListing",
@@ -518,6 +595,16 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "reviewer_id", type: "UUID", refTable: "users", description: "Shopper buyer posting review" },
             { name: "rating", type: "INT", description: "Product rating score range (1 to 5)" },
             { name: "comment", type: "TEXT", description: "Product review detail text" }
+          ]
+        },
+        {
+          name: "Shipment",
+          tableName: "shipments",
+          fields: [
+            { name: "order_id", type: "UUID", refTable: "orders", description: "Related order for shipment" },
+            { name: "carrier", type: "VARCHAR(100)", description: "Shipping carrier name" },
+            { name: "tracking_number", type: "VARCHAR(100)", description: "Carrier tracking number" },
+            { name: "status", type: "VARCHAR(50)", description: "Status: 'Pending', 'Shipped', 'InTransit', 'Delivered'" }
           ]
         }
       ];
@@ -614,8 +701,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // 8. AI Coaching & Scheduling Platform (Fitness Coach style)
     else if (normalized.includes('fitness') || normalized.includes('coach') || normalized.includes('gym') || normalized.includes('trainer') || normalized.includes('workout') || normalized.includes('meal')) {
-      domainName = "AI Fitness & Coaching Platform";
-      roles = ["Fitness Client", "AI Coaching Agent", "Human Trainer Auditor"];
+      domainName = "AI Fitness Coaching Platform";
+      roles = ["Client", "Coach", "Health Auditor"];
+      coreEntities = ["Clients", "Programs", "Workouts", "Progress Entries", "Nutrition Plans"];
+      revenueModel = "Subscription coaching plans with premium program upgrades and analytics add-ons.";
       entities = [
         {
           name: "ClientProfile",
@@ -648,13 +737,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ]
         },
         {
-          name: "ProgressLog",
-          tableName: "progress_logs",
+          name: "ProgressEntry",
+          tableName: "progress_entries",
           fields: [
-            { name: "client_id", type: "UUID", refTable: "users", description: "Reference to client logs profile" },
-            { name: "log_date", type: "DATE", description: "Log recording calendar date" },
+            { name: "client_id", type: "UUID", refTable: "users", description: "Reference to client progress profile" },
+            { name: "entry_date", type: "DATE", description: "Entry recording calendar date" },
             { name: "recorded_weight", type: "DECIMAL(5,2)", description: "Weight index indicator" },
-            { name: "compliance_score", type: "DECIMAL(5,2)", description: "Schedules checks compliance metrics" }
+            { name: "compliance_score", type: "DECIMAL(5,2)", description: "Program adherence score" }
           ]
         }
       ];
@@ -709,7 +798,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Is it a Booking/Scheduling platform?
       else if (normalized.includes('book') || normalized.includes('reserve') || normalized.includes('calendar') || normalized.includes('schedule') || normalized.includes('appointment') || normalized.includes('date') || normalized.includes('slot') || normalized.includes('loan')) {
         domainName = "On-Demand Resource Booking Hub";
-        roles = ["Renter Customer", "Host Owner Provider", "Operations Administrator"];
+        roles = ["Renter", "Resource Provider", "Operations Administrator"];
+        coreEntities = ["Resources", "Reservations", "Payments", "Availability Schedules"];
+        revenueModel = "Booking convenience fees and service charges on confirmed reservations.";
         entities = [
           {
             name: "ResourceListing",
@@ -732,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
           },
           {
-            name: "CancellationRecord",
+            name: "BookingCancellation",
             tableName: "cancellations",
             fields: [
               { name: "reservation_id", type: "UUID", refTable: "reservations", description: "Reference to cancelled booking" },
@@ -756,6 +847,8 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (normalized.includes('social') || normalized.includes('friend') || normalized.includes('network') || normalized.includes('connect') || normalized.includes('profile') || normalized.includes('chat') || normalized.includes('message') || normalized.includes('post')) {
         domainName = "Social Networking & Media Platform";
         roles = ["Network Member", "Content Moderator", "System Administrator"];
+        coreEntities = ["Members", "Connections", "Posts", "Messages"];
+        revenueModel = "Ad-supported community access with premium membership upgrades.";
         entities = [
           {
             name: "MemberProfile",
@@ -798,7 +891,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Fallback SaaS
       else {
         domainName = "B2B SaaS Hub & Portal";
-        roles = ["Account Administrator", "Staff Teammate", "System Auditor"];
+        roles = ["Account Owner", "Staff Teammate", "System Auditor"];
+        coreEntities = ["Organizations", "Memberships", "Integrations", "Reports"];
+        revenueModel = "Subscription tiers and enterprise onboarding fees.";
         entities = [
           {
             name: "OrganizationProfile",
@@ -866,7 +961,9 @@ document.addEventListener('DOMContentLoaded', () => {
       domainName,
       roles,
       entities,
-      integrations
+      integrations,
+      coreEntities,
+      revenueModel
     };
   }
 
@@ -889,14 +986,20 @@ document.addEventListener('DOMContentLoaded', () => {
       name,
       label: semantic.domainName,
       prompt,
+      businessAnalysis: {
+        category: semantic.domainName,
+        primaryRoles: semantic.roles,
+        coreEntities: semantic.coreEntities,
+        revenueModel: semantic.revenueModel
+      },
       executive: {
         description: `This blueprint outlines the development architecture for **${name}**, a platform specifically designed for **${semantic.domainName.toLowerCase()}** in response to the product requirements. The blueprint maps domain entities to micro-endpoints, database configurations, and interactive mock pipelines.`,
-        valueProp: `A secure, modular developer blueprint streamlining ${semantic.domainName.toLowerCase()} operations using a decoupled stack and structured records workflows.`,
+        valueProp: `A secure, modular developer blueprint streamlining ${semantic.domainName.toLowerCase()} operations using a decoupled stack and structured process flows.`,
         targetUsers: semantic.roles,
         businessModel: [
-          "Transaction fee share model (take rate: 3% to 5%)",
-          "Tiered SaaS platform subscriptions starting at $29/mo",
-          "Advanced analytics dashboards offered as client add-ons"
+          semantic.revenueModel,
+          "Tiered subscriptions and service add-ons for growth stage customers",
+          "Premium analytics and integration packs for advanced enterprise operations"
         ]
       },
       prd: {
@@ -904,17 +1007,17 @@ document.addEventListener('DOMContentLoaded', () => {
         goals: [
           `Provide an intuitive central directory for managing core ${semantic.entities[0].tableName} assets`,
           "Minimize task execution times through real-time telemetry updates and integration layers",
-          "Establish high security checks safeguarding sensitive client and transaction data records"
+          "Establish high security checks safeguarding sensitive client and transaction data entries"
         ],
         features: semantic.entities.map(e => ({
-          name: `${e.name} Lifecycle Operations`,
-          description: `Comprehensive interface to create, list, inspect status modifications, and execute queries on ${e.tableName} logs.`
+          name: `${e.name} business workflow`,
+          description: `End-to-end management of ${e.name} including creation, validation, status updates, and operational coordination across ${e.tableName}.`
         })),
         functional: [
           "Users must register and complete role mapping audits.",
           `System must support searching and filtering ${semantic.entities[0].tableName} listings using parameter fields.`,
           `Status changes on ${semantic.entities[1] ? semantic.entities[1].tableName : 'bookings'} trigger webhook notification callbacks.`,
-          "Double entry balance audits are conducted on transaction records before ledger settlements."
+          "Double entry balance audits are conducted on transaction entries before ledger settlements."
         ],
         nonFunctional: [
           "Web application views must load charts and tables in under 300ms.",
@@ -934,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       api: {
         authStrategy: "Stateless JSON Web Tokens (JWT) stored in secure, HttpOnly cookie headers. Includes bcrypt password hashing, token validation middleware, and cors controls.",
-        errorHandling: "Unified API wrappers returning error status strings, diagnostic logs, and troubleshooting payload schemas.",
+        errorHandling: "Unified API wrappers returning error status strings, diagnostic traces, and troubleshooting payload schemas.",
         endpoints: []
       },
       frontend: {
@@ -1075,12 +1178,10 @@ const UserSchema = new Schema({
       data.api.endpoints.push({
         method: "POST",
         path: `/api/${e.tableName}`,
-        desc: `Instantiate a new ${e.name} record (Authenticated)`,
+        desc: `Create a new ${e.name} resource (Authenticated)`,
         request: mockReq,
-        response: { success: true, message: `${e.name} record registered`, recordId: `uuid_${e.tableName.slice(0, -1)}_772` }
+        response: { success: true, message: `${e.name} resource created`, resourceId: `uuid_${e.tableName.slice(0, -1)}_772` }
       });
-      
-      // GET route
       data.api.endpoints.push({
         method: "GET",
         path: `/api/${e.tableName}`,
@@ -1091,7 +1192,7 @@ const UserSchema = new Schema({
     });
 
     // 5. Compile User Stories
-    const defaultVerbList = ["search and review listing elements of", "schedule and instantiate booking requests for", "log updates on", "view dashboard reports of"];
+    const defaultVerbList = ["search and review listing elements of", "schedule and instantiate booking requests for", "capture updates on", "view dashboard reports of"];
     semantic.roles.forEach((role, rIdx) => {
       semantic.entities.forEach((entity, eIdx) => {
         const verb = defaultVerbList[(rIdx + eIdx) % defaultVerbList.length];
@@ -1114,10 +1215,10 @@ const UserSchema = new Schema({
     data.frontend.components.push("AppShell.tsx - Header, sidebar, status dashboard layouts wrapper");
     semantic.entities.forEach(e => {
       data.frontend.components.push(`${e.name}Grid.tsx - Responsive card layout with filter bindings`);
-      data.frontend.components.push(`New${e.name}Form.tsx - Modal validations layout compiling new records inputs`);
+      data.frontend.components.push(`New${e.name}Form.tsx - Modal validations layout compiling new entity inputs`);
     });
     
-    data.frontend.navFlow = `User lands -> Logins -> Assigned role "${semantic.roles[0]}" -> Accesses dashboard -> Clicks catalog "${semantic.entities[0].tableName}" -> Queries listing items -> Clicks individual record -> Enters workflow action -> System updates database.`;
+    data.frontend.navFlow = `User lands -> Logins -> Assigned role "${semantic.roles[0]}" -> Accesses dashboard -> Clicks catalog "${semantic.entities[0].tableName}" -> Queries listing items -> Clicks individual resource -> Enters workflow action -> System updates database.`;
     
     let folderTree = `src/
 ├── app/
@@ -1150,7 +1251,7 @@ const UserSchema = new Schema({
     const dbName = semantic.integrations.includes('PostGIS Spatial Databases') ? "PostgreSQL with PostGIS" : "PostgreSQL";
     data.techStack.push({ layer: "Primary Database", tech: dbName, reason: `Safeguards relational schemas using foreign key integrity and ACID guarantees, with optimized indices on keys.` });
     
-    data.techStack.push({ layer: "In-Memory Caching", tech: "Redis", reason: "Caches database query logs, session data records, and rate-limiting metrics." });
+    data.techStack.push({ layer: "In-Memory Caching", tech: "Redis", reason: "Caches database query events, session state, and rate-limiting metrics." });
 
     semantic.integrations.forEach(integration => {
       if (integration.includes('Stripe')) {
@@ -1193,10 +1294,10 @@ Include proper indexes, constraint validations, and cascade deletion rules.`;
 
     data.vibeCoding.backend = `You are a Backend Software Architect. We are writing the API services for "${name}".
 Please write the Node.js Express script initializing the server, database connection middleware, JWT token verification filters, and the API routes for:
-${semantic.entities.map(e => `1. POST /api/${e.tableName} (creating records)\n2. GET /api/${e.tableName} (querying lists with filter flags)`).join('\n')}
+${semantic.entities.map(e => `1. POST /api/${e.tableName} (creating resources)\n2. GET /api/${e.tableName} (querying lists with filter flags)`).join('\n')}
 Include structural mock JSON error schemas.`;
 
-    data.vibeCoding.frontend = `You are a Creative Frontend Engineer. We need to build the records overview page for our Next.js application "${name}".
+    data.vibeCoding.frontend = `You are a Creative Frontend Engineer. We need to build the resource overview page for our Next.js application "${name}".
 Please write the React components for:
 1. ${semantic.entities[0].name}Card (displaying title, description, status indicator, and dynamic fields using glassmorphic styling)
 2. ${semantic.entities[0].name}Grid (binding a search form filter to the cards list)
@@ -1245,6 +1346,15 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
   // =========================================
   // VIEW RENDERING / DOM POPULATION
   // =========================================
+  function populateAnalysisView() {
+    const analysis = generatedData.businessAnalysis;
+    analysisCategory.textContent = analysis.category;
+    analysisRevenue.textContent = analysis.revenueModel;
+    analysisCompetitors.innerHTML = analysis.competitors.map(competitor => `<li>${competitor}</li>`).join('');
+    analysisRoles.innerHTML = analysis.primaryRoles.map(role => `<li>${role}</li>`).join('');
+    analysisEntities.innerHTML = analysis.coreEntities.map(entity => `<li>${entity}</li>`).join('');
+  }
+
   function populateBlueprintView() {
     specProductName.textContent = generatedData.name;
     specProductType.textContent = generatedData.label;
@@ -1279,19 +1389,35 @@ Please write a multi-stage Dockerfile for our Next.js frontend, an Express API D
   function renderExecutiveSection() {
     const container = document.querySelector('#sec-executive .section-content-render');
     const data = generatedData.executive;
+    const analysis = generatedData.businessAnalysis;
     container.innerHTML = `
       <div class="info-grid">
         <div class="info-card">
-          <h4>Product Name</h4>
-          <p><strong>${generatedData.name}</strong></p>
+          <h4>Business Category</h4>
+          <p><strong>${analysis.category}</strong></p>
         </div>
         <div class="info-card">
-          <h4>Primary Value Proposition</h4>
-          <p>${data.valueProp}</p>
+          <h4>Revenue Model</h4>
+          <p>${analysis.revenueModel}</p>
         </div>
       </div>
-      
-      <div class="info-card" style="margin-bottom: 1.5rem; width: 100%;">
+
+      <div class="info-grid">
+        <div class="info-card">
+          <h4>Primary User Roles</h4>
+          <ul>
+            ${analysis.primaryRoles.map(role => `<li>${role}</li>`).join('')}
+          </ul>
+        </div>
+        <div class="info-card">
+          <h4>Core Business Entities</h4>
+          <ul>
+            ${analysis.coreEntities.map(entity => `<li>${entity}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-card" style="margin: 1.5rem 0; width: 100%;">
         <h4>Product Description</h4>
         <p>${data.description}</p>
       </div>
