@@ -3,3 +3,6 @@ node_modules/
 *.log
 .system_generated/
 .gemini/
+
+# Gemini API key — never commit this file
+gemini-config.js

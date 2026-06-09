@@ -1198,3 +1198,19 @@ footer a:hover {
     font-size: 1.4rem;
   }
 }
+
+/* Gemini Badge */
+.gemini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(43, 76, 126, 0.12);
+  border: 1px solid rgba(43, 76, 126, 0.25);
+  color: var(--accent-alt);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+}
