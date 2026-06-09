@@ -371,6 +371,204 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================
+  // PAYLOAD & DIAGRAM GENERATOR HELPERS
+  // =========================================
+  function generateRequestPayload(endpoint, entities, features) {
+    const method = endpoint.method?.toUpperCase() || 'GET';
+    const path = endpoint.path || '/';
+    const desc = endpoint.desc?.toLowerCase() || '';
+
+    const payload = {};
+
+    if (method === 'GET') {
+      if (path.includes('{') || path.includes(':')) {
+        const param = path.match(/\{?:?(\w+)\}?/) || ['', 'id'];
+        payload[param[1]] = 'string_or_id_value';
+      }
+      if (desc.includes('search') || desc.includes('filter') || desc.includes('list')) {
+        payload.query = 'search_term';
+        payload.limit = 10;
+        payload.offset = 0;
+      }
+    } else if (method === 'POST' || method === 'PUT') {
+      const entityName = entities?.[0] || 'data';
+      const feature = features?.[0] || {};
+      const featureName = typeof feature === 'string' ? feature : (feature.name || 'Feature');
+
+      payload.id = 'auto_generated_uuid';
+      payload[entityName.toLowerCase().slice(0, -1) || 'item'] = {
+        name: `${entityName} Name`,
+        description: `${featureName} description`,
+        status: 'active',
+        metadata: { created: 'timestamp', updated: 'timestamp' }
+      };
+      payload.userId = 'authenticated_user_id';
+    } else if (method === 'DELETE') {
+      const param = path.match(/\{?:?(\w+)\}?/) || ['', 'id'];
+      payload[param[1]] = 'resource_id_to_delete';
+    }
+
+    return Object.keys(payload).length > 0 ? payload : { message: 'Request payload', timestamp: 'ISO8601' };
+  }
+
+  function generateResponsePayload(endpoint, entities, features) {
+    const method = endpoint.method?.toUpperCase() || 'GET';
+    const desc = endpoint.desc?.toLowerCase() || '';
+    const entityName = entities?.[0] || 'Data';
+
+    const baseResponse = {
+      success: true,
+      timestamp: 'ISO8601_timestamp',
+      requestId: 'correlation_uuid'
+    };
+
+    if (method === 'GET') {
+      if (desc.includes('list') || desc.includes('search') || desc.includes('all')) {
+        return {
+          ...baseResponse,
+          data: [
+            {
+              id: 'uuid_1',
+              [entityName.toLowerCase().slice(0, -1) || 'item']: 'example_value',
+              status: 'active',
+              createdAt: 'ISO8601',
+              updatedAt: 'ISO8601'
+            }
+          ],
+          pagination: { limit: 10, offset: 0, total: 42 }
+        };
+      }
+      return {
+        ...baseResponse,
+        data: {
+          id: 'uuid',
+          [entityName.toLowerCase().slice(0, -1) || 'item']: 'example_value',
+          status: 'active',
+          createdAt: 'ISO8601',
+          updatedAt: 'ISO8601'
+        }
+      };
+    } else if (method === 'POST') {
+      return {
+        ...baseResponse,
+        data: {
+          id: 'newly_created_uuid',
+          [entityName.toLowerCase().slice(0, -1) || 'item']: 'created_value',
+          status: 'pending',
+          createdAt: 'ISO8601'
+        },
+        message: `${entityName} created successfully`
+      };
+    } else if (method === 'PUT') {
+      return {
+        ...baseResponse,
+        data: {
+          id: 'updated_uuid',
+          [entityName.toLowerCase().slice(0, -1) || 'item']: 'updated_value',
+          status: 'active',
+          updatedAt: 'ISO8601'
+        },
+        message: `${entityName} updated successfully`
+      };
+    } else if (method === 'DELETE') {
+      return {
+        ...baseResponse,
+        message: `${entityName} deleted successfully`,
+        deletedId: 'resource_uuid'
+      };
+    }
+
+    return baseResponse;
+  }
+
+  function generateArchitectureDiagram(techStack, frontend, api) {
+    const frontend_tech = techStack?.find(t => t.layer?.toLowerCase().includes('frontend'))?.tech || 'React/Next.js';
+    const backend_tech = techStack?.find(t => t.layer?.toLowerCase().includes('backend'))?.tech || 'Node.js/Express';
+    const db_tech = techStack?.find(t => t.layer?.toLowerCase().includes('database'))?.tech || 'PostgreSQL';
+    const cache_tech = techStack?.find(t => t.layer?.toLowerCase().includes('cache'))?.tech || 'Redis';
+
+    const has_auth = (api?.authStrategy || '').toLowerCase().includes('jwt');
+    const num_endpoints = (api?.endpoints || []).length;
+
+    return `
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT LAYER                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Web Browser                                                      │
+│  (${frontend_tech})                                              │
+└────────────────┬────────────────────────────────────────────────┘
+                 │ HTTPS / WebSocket
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    API GATEWAY LAYER                              │
+├─────────────────────────────────────────────────────────────────┤
+│  Rate Limiting │ ${has_auth ? 'JWT Auth' : 'Auth'} │ Request Validation              │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    APPLICATION SERVER                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Backend: ${backend_tech.padEnd(45)}│
+│  REST API (${String(num_endpoints).padEnd(2)} endpoints) │ Business Logic           │
+│  Request Handlers │ Data Transformation │ Error Handling         │
+└────────────────┬───────────────────────────────┬────────────────┘
+                 │                               │
+        ┌────────▼────────┐          ┌──────────▼──────────┐
+        ▼                 ▼          ▼                     ▼
+┌──────────────┐  ┌──────────────┐ ┌───────────┐  ┌──────────────┐
+│  PRIMARY DB  │  │  CACHE LAYER │ │  QUEUE   │  │  FILE STORE  │
+│              │  │              │ │  SERVICE │  │  (Cloud)     │
+│ ${db_tech.padEnd(12)} │  │ ${cache_tech.padEnd(12)} │ │ Bull/Redis   │  │ S3/GCS       │
+└──────────────┘  └──────────────┘ └───────────┘  └──────────────┘
+        │                 │                               │
+        └─────────────────┴───────────────────────────────┘
+                         │
+        ┌────────────────┴────────────────┐
+        ▼                                 ▼
+┌──────────────────┐          ┌──────────────────────┐
+│ EXTERNAL SERVICES│          │ MONITORING & LOGGING │
+│  • Payment APIs  │          │  • Application Logs  │
+│  • Email Service │          │  • Performance Metrics
+│  • Analytics     │          │  • Error Tracking    │
+└──────────────────┘          └──────────────────────┘
+`;
+  }
+
+  // =========================================
+  // FIELD DERIVATION HELPERS
+  // =========================================
+  function deriveValueProposition(g) {
+    const analysis = g.businessAnalysis || {};
+    const isObj = typeof analysis === 'object';
+    const category = isObj ? analysis.category : String(analysis);
+    const roles = (g.roles || [])[0] || 'Users';
+    const problem = (g.prd?.problemStatement || '').substring(0, 100);
+
+    if (problem) return `Delivers ${category} solution for ${roles} by addressing: ${problem}...`;
+    if (category) return `Provides streamlined ${category} capabilities for ${roles}`;
+    return 'AI-powered product that streamlines operations and improves efficiency';
+  }
+
+  function deriveBusinessModel(g) {
+    const revenue = g.revenueModel || '';
+    const category = (g.businessAnalysis && typeof g.businessAnalysis === 'object' ? g.businessAnalysis.category : g.businessAnalysis) || '';
+
+    const models = [];
+    if (revenue.toLowerCase().includes('subscription')) models.push('Subscription-based recurring revenue');
+    if (revenue.toLowerCase().includes('freemium')) models.push('Freemium tier with premium features');
+    if (revenue.toLowerCase().includes('transaction')) models.push('Transaction fees from marketplace activity');
+    if (revenue.toLowerCase().includes('licensing')) models.push('Enterprise licensing model');
+
+    if (models.length === 0) {
+      if (category) models.push(`B2B ${category} licensing`);
+      models.push('Subscription with usage-based tiers');
+    }
+
+    return models;
+  }
+
+  // =========================================
   // GEMINI RESPONSE → INTERNAL DATA SHAPE MERGER
   // =========================================
   /**
@@ -401,7 +599,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Also update executive summary target users
     data.executive = {
-      targetUsers: data.businessAnalysis.primaryRoles
+      targetUsers: data.businessAnalysis.primaryRoles,
+      description: g.businessAnalysis && typeof g.businessAnalysis === 'string' ? g.businessAnalysis : (isBAObject ? rawBA.description : ''),
+      valueProp: g.valueProp || deriveValueProposition(g),
+      businessModel: Array.isArray(g.businessModel) ? g.businessModel : deriveBusinessModel(g)
     };
 
     // ── PRD ─────────────────────────────────────────────────────────────────
@@ -451,13 +652,21 @@ document.addEventListener('DOMContentLoaded', () => {
         authStrategy : g.api.authStrategy  || '',
         errorHandling: g.api.errorHandling || '',
         endpoints    : Array.isArray(g.api.endpoints)
-          ? g.api.endpoints.map(ep => ({
-              method  : ep.method   || 'GET',
-              path    : ep.path     || '/',
-              desc    : ep.desc || ep.description || '',
-              request : ep.request  || {},
-              response: ep.response || {},
-            }))
+          ? g.api.endpoints.map(ep => {
+              const method   = ep.method   || 'GET';
+              const path     = ep.path     || '/';
+              const desc     = ep.desc || ep.description || '';
+              const hasRequest = ep.request && Object.keys(ep.request).length > 0;
+              const hasResponse = ep.response && Object.keys(ep.response).length > 0;
+
+              return {
+                method,
+                path,
+                desc,
+                request : hasRequest ? ep.request : generateRequestPayload({ method, path, desc }, data.businessAnalysis.coreEntities, data.prd.features),
+                response: hasResponse ? ep.response : generateResponsePayload({ method, path, desc }, data.businessAnalysis.coreEntities, data.prd.features)
+              };
+            })
           : [],
       };
     } else {
@@ -513,7 +722,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Architecture Diagram ────────────────────────────────────────────────
-    if (g.diagram) data.diagram = g.diagram;
+    if (g.diagram && g.diagram.trim()) {
+      data.diagram = g.diagram;
+    } else {
+      data.diagram = generateArchitectureDiagram(data.techStack, data.frontend, data.api);
+    }
 
     return data;
   }
@@ -619,6 +832,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>${escapeHTML(String(data.description || 'Not Available'))}</p>
       </div>
 
+      <div class="info-card" style="margin: 1.5rem 0; width: 100%;">
+        <h4>Value Proposition</h4>
+        <p>${escapeHTML(String(data.valueProp || 'Not Available'))}</p>
+      </div>
+
       <div class="info-grid">
         <div class="info-card">
           <h4>Target Users / System Roles</h4>
@@ -629,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="info-card">
           <h4>Business Model Hypotheses</h4>
           <ul>
-            ${(data.businessModel||[]).map(model => `<li>${escapeHTML(String(model))}</li>`).join('')}
+            ${(data.businessModel||[]).length > 0 ? (data.businessModel||[]).map(model => `<li>${escapeHTML(String(model))}</li>`).join('') : '<li>Not Available</li>'}
           </ul>
         </div>
       </div>
@@ -774,11 +992,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="info-grid" style="margin-bottom: 2rem;">
         <div class="info-card">
           <h4>Authentication &amp; Security</h4>
-          <p>${api.authStrategy}</p>
+          <p>${escapeHTML(String(api.authStrategy || 'Not Available'))}</p>
         </div>
         <div class="info-card">
           <h4>Error Response Standard</h4>
-          <p>${api.errorHandling}</p>
+          <p>${escapeHTML(String(api.errorHandling || 'Not Available'))}</p>
         </div>
       </div>
 
@@ -832,13 +1050,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="info-card" style="margin: 1.5rem 0; width: 100%;">
         <h4>Navigation &amp; Global State Flow</h4>
-        <p>${escapeHTML(String(fe.navFlow || ''))}</p>
+        <p>${escapeHTML(String(fe.navFlow || 'Not Available'))}</p>
       </div>
 
       <h4 class="quick-fill-label">Standard Folder Structure (Next.js App Router)</h4>
       <div class="code-display-box">
         <button class="btn-copy-section code-copy-overlay" onclick="copyCodeContent('fe-folder-code')">Copy Folder Tree</button>
-        <pre id="fe-folder-code"><code>${escapeHTML(String(fe.folderStructure || ''))}</code></pre>
+        <pre id="fe-folder-code"><code>${escapeHTML(String(fe.folderStructure || 'Not Available'))}</code></pre>
       </div>
     `;
   }
@@ -916,10 +1134,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderDiagramSection() {
     const container = document.querySelector('#sec-diagram .section-content-render');
-    const diag = generatedData.diagram;
+    const diag = generatedData.diagram || 'Not Available';
     container.innerHTML = `
       <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Below is the text-based systems architecture and flow diagram representing the request routing topology:</p>
-      <div class="ascii-architecture-art">${diag}</div>
+      <div class="ascii-architecture-art">${escapeHTML(String(diag))}</div>
       <div class="info-card" style="width: 100%;">
         <h4>Architecture Details</h4>
         <ul>
@@ -956,12 +1174,16 @@ document.addEventListener('DOMContentLoaded', () => {
         md += `## 1. Executive Summary\n\n`;
         md += `* **Product Name**: ${generatedData.name}\n`;
         md += `* **Product Type**: ${generatedData.label}\n`;
-        md += `* **Value Proposition**: ${generatedData.executive.valueProp}\n\n`;
-        md += `### Description\n${generatedData.executive.description}\n\n`;
+        md += `* **Value Proposition**: ${generatedData.executive?.valueProp || 'Not Available'}\n\n`;
+        md += `### Description\n${generatedData.executive?.description || 'Not Available'}\n\n`;
         md += `### Target Users / System Roles\n`;
-        (generatedData.executive.targetUsers||[]).forEach(u => md += `* ${u}\n`);
+        (generatedData.executive?.targetUsers||[]).forEach(u => md += `* ${u}\n`);
         md += `\n### Business Model Suggestions\n`;
-        (generatedData.executive.businessModel||[]).forEach(b => md += `* ${b}\n`);
+        if ((generatedData.executive?.businessModel||[]).length > 0) {
+          (generatedData.executive?.businessModel||[]).forEach(b => md += `* ${b}\n`);
+        } else {
+          md += `* Not Available\n`;
+        }
         break;
         
       case 'sec-prd':
@@ -1000,12 +1222,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
       case 'sec-api':
         md += `## 5. API Design Specification\n\n`;
-        md += `* **Authentication**: ${generatedData.api.authStrategy}\n`;
-        md += `* **Error Handling**: ${generatedData.api.errorHandling}\n\n`;
+        md += `* **Authentication**: ${generatedData.api?.authStrategy || 'Not Available'}\n`;
+        md += `* **Error Handling**: ${generatedData.api?.errorHandling || 'Not Available'}\n\n`;
         md += `### Endpoints\n\n`;
-        (generatedData.api.endpoints||[]).forEach(ep => {
+        (generatedData.api?.endpoints||[]).forEach(ep => {
           md += `#### ${ep.method || 'GET'} ${ep.path || '/'}\n`;
-          md += `*Description*: ${ep.desc || ''}\n\n`;
+          md += `*Description*: ${ep.desc || 'Not Available'}\n\n`;
           md += `**Request Body**:\n\`\`\`json\n${JSON.stringify(ep.request || {}, null, 2)}\n\`\`\`\n\n`;
           md += `**Response (200 OK / 201 Created)**:\n\`\`\`json\n${JSON.stringify(ep.response || {}, null, 2)}\n\`\`\`\n\n`;
         });
@@ -1014,11 +1236,11 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'sec-frontend':
         md += `## 6. Frontend Architecture\n\n`;
         md += `### Key Pages\n`;
-        (generatedData.frontend.pages||[]).forEach(p => md += `* ${p}\n`);
+        (generatedData.frontend?.pages||[]).forEach(p => md += `* ${p}\n`);
         md += `\n### Core Components\n`;
-        (generatedData.frontend.components||[]).forEach(c => md += `* ${c}\n`);
-        md += `\n### Navigation Flow\n${generatedData.frontend.navFlow}\n\n`;
-        md += `### Recommended Folder Structure\n\`\`\`\n${generatedData.frontend.folderStructure}\n\`\`\`\n`;
+        (generatedData.frontend?.components||[]).forEach(c => md += `* ${c}\n`);
+        md += `\n### Navigation Flow\n${generatedData.frontend?.navFlow || 'Not Available'}\n\n`;
+        md += `### Recommended Folder Structure\n\`\`\`\n${generatedData.frontend?.folderStructure || 'Not Available'}\n\`\`\`\n`;
         break;
         
       case 'sec-techstack':
@@ -1051,7 +1273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
         
       case 'sec-diagram':
-        md += `## 10. Architecture Diagram\n\n\`\`\`text\n${generatedData.diagram}\n\`\`\`\n`;
+        md += `## 10. Architecture Diagram\n\n\`\`\`text\n${generatedData.diagram || 'Not Available'}\n\`\`\`\n`;
         break;
     }
     
