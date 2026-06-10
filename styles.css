@@ -764,7 +764,6 @@ main {
   border: 1px solid var(--border-color);
   border-radius: 0;
   padding: 1.5rem;
-  min-height: 500px;
   box-shadow: 10px 10px 0 var(--shadow);
 }
 
@@ -982,7 +981,7 @@ main {
   border-radius: 0;
   padding: 1.25rem;
   overflow: auto;
-  max-height: 320px;
+  max-height: 480px;
   font-family: var(--font-code);
   font-size: 0.85rem;
   line-height: 1.5;
@@ -990,8 +989,14 @@ main {
   position: relative;
 }
 
-.code-display-box pre {
+.code-display-box pre,
+.code-display-box code {
   margin: 0;
+  white-space: pre;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
 }
 
 

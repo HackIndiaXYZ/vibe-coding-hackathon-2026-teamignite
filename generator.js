@@ -1063,11 +1063,110 @@ document.addEventListener('DOMContentLoaded', () => {
     return formattedStatements.join('\n\n');
   }
 
+  function formatObjectBody(body) {
+    const fields = [];
+    let current = '';
+    let depth = 0;
+
+    for (let i = 0; i < body.length; i++) {
+      const ch = body[i];
+      if (ch === '{' || ch === '[' || ch === '(') depth++;
+      if (ch === '}' || ch === ']' || ch === ')') depth--;
+
+      if (ch === ',' && depth === 0) {
+        fields.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+
+    if (current.trim()) fields.push(current.trim());
+    if (fields.length <= 1) return body.trim();
+
+    return fields
+      .map((field, idx) => `  ${field}${idx < fields.length - 1 ? ',' : ''}`)
+      .join('\n');
+  }
+
+  function formatMongoSchema(nosql) {
+    if (!nosql || !nosql.trim()) return '';
+
+    let content = nosql.trim();
+    if (content.includes('\\n')) {
+      content = content.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+    }
+
+    const lines = content.split('\n');
+    if (lines.length >= 4 && lines.some(line => /^\s{2,}\S/.test(line))) {
+      return content;
+    }
+
+    const schemaBlocks = [];
+    const constSchemaRegex = /const\s+(\w+)\s*=\s*\{([\s\S]*?)\}\s*;?/g;
+    let match;
+
+    while ((match = constSchemaRegex.exec(content)) !== null) {
+      schemaBlocks.push(
+        `const ${match[1]} = {\n${formatObjectBody(match[2])}\n};`
+      );
+    }
+
+    if (schemaBlocks.length > 0) {
+      return schemaBlocks.join('\n\n');
+    }
+
+    const mongooseRegex = /new\s+mongoose\.Schema\s*\(\s*\{([\s\S]*?)\}\s*(?:,\s*\{[\s\S]*?\})?\s*\)/g;
+    while ((match = mongooseRegex.exec(content)) !== null) {
+      schemaBlocks.push(
+        `new mongoose.Schema({\n${formatObjectBody(match[1])}\n})`
+      );
+    }
+
+    if (schemaBlocks.length > 0) {
+      return schemaBlocks.join('\n\n');
+    }
+
+    const bareObjectMatch = content.match(/^\{([\s\S]*)\}$/);
+    if (bareObjectMatch) {
+      return `{\n${formatObjectBody(bareObjectMatch[1])}\n}`;
+    }
+
+    return content
+      .replace(/\{\s*/g, '{\n  ')
+      .replace(/,\s*(?=[\w_$])/g, ',\n  ')
+      .replace(/\s*\}/g, '\n}');
+  }
+
+  function extractMongoSchemaCode(nosql) {
+    if (!nosql || !nosql.trim()) return '';
+
+    const content = nosql.trim();
+    const blocks = [];
+
+    const constSchemaRegex = /const\s+\w+\s*=\s*\{[\s\S]*?\}\s*;?/g;
+    let match;
+    while ((match = constSchemaRegex.exec(content)) !== null) {
+      blocks.push(match[0]);
+    }
+
+    const mongooseRegex = /new\s+mongoose\.Schema\s*\(\s*\{[\s\S]*?\}\s*(?:,\s*\{[\s\S]*?\})?\s*\)/g;
+    while ((match = mongooseRegex.exec(content)) !== null) {
+      blocks.push(match[0]);
+    }
+
+    if (blocks.length > 0) return blocks.join('\n\n');
+
+    const hasSchemaFields = /\w+\s*:\s*(String|Number|Boolean|Date|ObjectId|Array|Mixed|Schema\.Types\.\w+)/.test(content);
+    const hasSchemaDeclaration = /const\s+\w+\s*=\s*\{/.test(content) || /new\s+mongoose\.Schema\s*\(/.test(content);
+
+    return hasSchemaDeclaration && hasSchemaFields ? content : '';
+  }
+
   function getOrGenerateMongoSchema(db, entities) {
-    let nosql = db.nosql || '';
-    const isCode = nosql.includes('{') || nosql.includes('const ') || nosql.includes('schema') || nosql.includes('define');
-    
-    if (!nosql.trim() || !isCode) {
+    const extracted = extractMongoSchemaCode(db.nosql || '');
+
+    if (!extracted) {
       const coreEntities = entities || generatedData.businessAnalysis?.coreEntities || generatedData.entities || [];
       const finalEntities = coreEntities.length > 0 ? coreEntities : ['User', 'Listing', 'Booking', 'Review'];
       
@@ -1107,10 +1206,10 @@ document.addEventListener('DOMContentLoaded', () => {
         generated += `};\n\n`;
       });
       
-      return generated.trim();
+      return formatMongoSchema(generated.trim());
     }
-    
-    return nosql.trim();
+
+    return formatMongoSchema(extracted);
   }
 
   function renderDatabaseSection() {
@@ -1397,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'sec-database':
         md += `## 4. Database Schema Design\n\n`;
         md += `### PostgreSQL Relational Schema\n\n\`\`\`sql\n${generatedData.database.sql}\n\`\`\`\n\n`;
-        md += `### MongoDB Mongoose Schemas\n\n\`\`\`javascript\n${generatedData.database.nosql}\n\`\`\`\n`;
+        md += `### MongoDB Mongoose Schemas\n\n\`\`\`javascript\n${getOrGenerateMongoSchema(generatedData.database, generatedData.businessAnalysis?.coreEntities)}\n\`\`\`\n`;
         break;
         
       case 'sec-api':
