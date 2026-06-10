@@ -364,7 +364,10 @@ module.exports = async function handler(req, res) {
 
   console.log(`[API] Starting generation for prompt: "${prompt.substring(0, 60)}..."`);
 
-  const modelChain = [MODEL, 'gemini-2.5-flash-lite', 'gemini-1.5-flash'];
+  const modelChain = [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite'
+  ];
   let parsed = null;
   let lastError = null;
 
