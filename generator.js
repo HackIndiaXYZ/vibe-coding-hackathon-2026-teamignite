@@ -80,16 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Suggestion chips handler
-  const suggestionPills = document.querySelectorAll('.suggestion-pill');
-  suggestionPills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      promptInput.value = pill.getAttribute('data-prompt');
-      charCount.textContent = promptInput.value.length;
-      promptInput.focus();
-    });
-  });
-
   // Sidebar Tab Switching
   sidebarNavBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1454,6 +1444,91 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  const TEMPLATE_POOL = [
+    { label: 'SaaS Analytics Platform', prompt: 'Build a SaaS analytics dashboard for marketing agencies. It needs user management, custom report builders, integrations with Google Ads and Facebook Ads, and a subscription billing system with Stripe.' },
+    { label: 'B2B CRM Suite', prompt: 'Create a B2B CRM for sales teams with pipeline tracking, email sequences, meeting scheduling, team permissions, and revenue forecasting dashboards.' },
+    { label: 'Subscription Billing Hub', prompt: 'Design a subscription management SaaS with tiered plans, usage metering, invoicing, dunning emails, and a customer self-service portal.' },
+    { label: 'AI Fitness Coach', prompt: 'Develop an AI-powered fitness coaching app. Users input their goals, equipment access, and allergies, and an AI agent designs weekly workout and meal plans with progress charts.' },
+    { label: 'AI Legal Document Review', prompt: 'Build an AI tool that reviews contracts, highlights risky clauses, suggests redlines, and lets legal teams collaborate with version history and audit logs.' },
+    { label: 'AI Customer Support Agent', prompt: 'Create an AI support platform that ingests help docs, answers tickets in chat, escalates to humans, and tracks resolution quality with analytics.' },
+    { label: 'Personal Finance Tracker', prompt: 'Build a personal finance app that links bank accounts, categorizes transactions, sets budgets, forecasts cash flow, and sends bill reminders.' },
+    { label: 'Invoice Factoring Marketplace', prompt: 'Create a FinTech marketplace where small businesses sell unpaid invoices to investors, with risk scoring, KYC verification, and escrow payments.' },
+    { label: 'Micro-Investing App', prompt: 'Design a micro-investing app with round-up spare change, themed portfolios, recurring deposits, and tax reporting exports.' },
+    { label: 'Online Course Platform', prompt: 'Build an EdTech platform for instructors to host video courses, quizzes, certificates, student progress tracking, and Stripe payouts.' },
+    { label: 'Peer Tutoring Marketplace', prompt: 'Create a tutoring marketplace where students book sessions by subject, with calendar scheduling, video calls, ratings, and secure payments.' },
+    { label: 'Campus Study Planner', prompt: 'Develop a student productivity app with class schedules, assignment deadlines, Pomodoro timers, and AI-generated study plans.' },
+    { label: 'Telehealth Booking App', prompt: 'Build a telehealth platform where patients book video consultations, upload symptoms, receive prescriptions, and manage follow-up appointments.' },
+    { label: 'Mental Wellness Journal', prompt: 'Create a mental health app with mood journaling, guided breathing exercises, therapist-matching, and HIPAA-aware secure messaging.' },
+    { label: 'Pharmacy Delivery Network', prompt: 'Create an on-demand delivery app for local pharmacies. Customers upload prescriptions, pharmacists confirm availability, and couriers deliver with GPS tracking.' },
+    { label: 'Freelance Services Marketplace', prompt: 'Build a freelance marketplace with gig listings, escrow payments, milestone workflows, dispute resolution, and seller reputation scores.' },
+    { label: 'P2P Space Booking App', prompt: 'Build a peer-to-peer workspace booking app. Hosts list unused desks or rooms, and remote workers book them hourly with calendar scheduling and dynamic pricing.' },
+    { label: 'Local Food Delivery Hub', prompt: 'Design a hyperlocal food delivery marketplace connecting restaurants, drivers, and customers with live order tracking and split payouts.' },
+    { label: 'Open Source API Monitor', prompt: 'Build a developer tool that monitors REST API uptime, logs response times, alerts on failures, and provides public status pages.' },
+    { label: 'CI/CD Pipeline Dashboard', prompt: 'Create a developer platform that visualizes build pipelines, test coverage, deployment history, and rollback controls for engineering teams.' },
+    { label: 'SQL Schema Diff Tool', prompt: 'Design a developer SaaS that compares database schemas across environments, generates migration scripts, and reviews changes in pull requests.' },
+    { label: 'Team Task Board', prompt: 'Build a team productivity app with Kanban boards, due dates, file attachments, @mentions, and weekly focus summaries.' },
+    { label: 'Habit Tracker Coach', prompt: 'Create a habit tracking app with streaks, reminders, accountability partners, and AI nudges based on missed goals.' },
+    { label: 'Meeting Notes Assistant', prompt: 'Develop a productivity tool that records meetings, transcribes audio, extracts action items, and syncs tasks to project boards.' },
+    { label: 'D2C Fashion Store', prompt: 'Build an e-commerce store for a fashion brand with product catalogs, size guides, cart checkout, order tracking, and email receipts.' },
+    { label: 'Multi-Vendor Marketplace', prompt: 'Create a multi-vendor e-commerce marketplace with seller onboarding, commission rules, inventory sync, and unified customer checkout.' },
+    { label: 'Subscription Box Commerce', prompt: 'Design an e-commerce platform for curated subscription boxes with plan customization, recurring billing, and shipment management.' },
+    { label: 'Creator Fan Community', prompt: 'Build a social platform where creators post exclusive content, run memberships, host live streams, and engage fans with polls and DMs.' },
+    { label: 'Local Events Network', prompt: 'Create a social events app where users discover nearby meetups, RSVP, invite friends, and share photo recaps afterward.' },
+    { label: 'Professional Networking Hub', prompt: 'Design a professional social network with profiles, skill endorsements, job postings, intro requests, and industry group discussions.' },
+  ];
+
+  let lastTemplateLabels = [];
+
+  function shuffleArray(items) {
+    const arr = [...items];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const TEMPLATE_DISPLAY_COUNT = 3;
+
+  function pickTemplates() {
+    let available = TEMPLATE_POOL.filter(t => !lastTemplateLabels.includes(t.label));
+    if (available.length < TEMPLATE_DISPLAY_COUNT) {
+      available = [...TEMPLATE_POOL];
+      lastTemplateLabels = [];
+    }
+    const selected = shuffleArray(available).slice(0, TEMPLATE_DISPLAY_COUNT);
+    lastTemplateLabels = selected.map(t => t.label);
+    return selected;
+  }
+
+  function renderTemplateSuggestions() {
+    const grid = document.getElementById('quick-fill-grid');
+    if (!grid) return;
+
+    const templates = pickTemplates();
+    const templateButtons = templates.map(t =>
+      `<button type="button" class="suggestion-pill" data-prompt="${escapeHTML(t.prompt)}">${escapeHTML(t.label)}</button>`
+    ).join('');
+
+    grid.innerHTML = `${templateButtons}<button type="button" class="suggestion-pill template-more-btn" id="template-more-btn">More Templates</button>`;
+
+    grid.querySelectorAll('.suggestion-pill[data-prompt]').forEach(pill => {
+      pill.addEventListener('click', () => {
+        promptInput.value = pill.getAttribute('data-prompt');
+        charCount.textContent = promptInput.value.length;
+        promptInput.focus();
+      });
+    });
+
+    const moreBtn = document.getElementById('template-more-btn');
+    if (moreBtn) {
+      moreBtn.addEventListener('click', renderTemplateSuggestions);
+    }
+  }
+
+  renderTemplateSuggestions();
+
 
   // =========================================
   // MARKDOWN BLUEPRINT COMPILATION
