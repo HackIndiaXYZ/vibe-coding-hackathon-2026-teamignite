@@ -10,8 +10,8 @@
  */
 
 window.GEMINI_CONFIG = {
-  // ← Replace with your actual Gemini API key
-  API_KEY: 'AQ.Ab8RN6I-0q6IwPx5fuFa3xLzszSq3psX94Arj36rYmbvhyzoBA',
+  // API key is now secured on the Vercel backend environment variables (GEMINI_API_KEY)
+  API_KEY: '',
 
   // Model to use — gemini-2.0-flash is fast and generous on free tier
   MODEL: 'gemini-2.5-flash',

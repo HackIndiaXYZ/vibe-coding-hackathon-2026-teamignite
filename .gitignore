@@ -3,5 +3,9 @@ node_modules/
 *.log
 .system_generated/
 .gemini/
+.env
+.env.local
+.vercel
+
 
 
