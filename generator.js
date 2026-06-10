@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const loadingTitle = document.getElementById('loading-title');
   const progressbarFill = document.getElementById('progressbar-fill');
+  const homeLogoBtn = document.getElementById('home-logo-btn');
   
   // Navigation tabs
   const sidebarNavBtns = document.querySelectorAll('.sidebar-nav-btn');
@@ -60,6 +61,14 @@ document.addEventListener('DOMContentLoaded', () => {
       devLogsEl.style.display = devLogsEl.style.display === 'none' ? 'block' : 'none';
     };
   })();
+
+  function goToHomeScreen() {
+    blueprintView.classList.remove('active');
+    analysisView.classList.remove('active');
+    loadingView.classList.remove('active');
+    inputView.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // Characters counter
   promptInput.addEventListener('input', () => {
@@ -127,6 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  promptInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      generateBtn.click();
+    }
+  });
+
+  if (homeLogoBtn) {
+    homeLogoBtn.addEventListener('click', goToHomeScreen);
+  }
+
   // Main Generate Button Handler
   generateBtn.addEventListener('click', () => {
     const rawPrompt = promptInput.value.trim();
@@ -148,12 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Reset Button Handler
-  newSpecBtn.addEventListener('click', () => {
-    blueprintView.classList.remove('active');
-    analysisView.classList.remove('active');
-    inputView.classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  newSpecBtn.addEventListener('click', goToHomeScreen);
 
   continueBtn.addEventListener('click', () => {
     analysisView.classList.remove('active');
@@ -1257,20 +1272,20 @@ document.addEventListener('DOMContentLoaded', () => {
       ${(api.endpoints||[]).map((ep, idx) => `
         <div class="specs-list-item" style="margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-            <span style="font-family: var(--font-code); font-size: 0.8rem; font-weight: 700; background: ${ep.method === 'POST' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)'}; color: ${ep.method === 'POST' ? '#34d399' : '#60a5fa'}; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid ${ep.method === 'POST' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(59, 130, 246, 0.3)'};">${ep.method}</span>
-            <span style="font-family: var(--font-code); font-weight: 600; color: #ffffff;">${ep.path}</span>
+            <span style="font-family: var(--font-code); font-size: 0.8rem; font-weight: 700; background: ${ep.method === 'POST' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(43, 76, 126, 0.15)'}; color: ${ep.method === 'POST' ? '#34d399' : 'var(--accent-alt)'}; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid ${ep.method === 'POST' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(43, 76, 126, 0.3)'};">${ep.method}</span>
+            <span style="font-family: var(--font-code); font-weight: 600; color: var(--accent-alt);">${ep.path}</span>
             <span style="color: var(--text-muted); font-size: 0.85rem;">— ${ep.desc}</span>
           </div>
           
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
             <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase;">Request Payload</div>
+              <div style="font-size: 0.75rem; color: var(--accent-alt); margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase;">Request Payload</div>
               <div class="code-display-box" style="padding: 0.75rem; font-size: 0.8rem;">
                 <pre><code>${escapeHTML(String(JSON.stringify(ep.request || {}, null, 2)))}</code></pre>
               </div>
             </div>
             <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase;">Response (200 OK / 201 Created)</div>
+              <div style="font-size: 0.75rem; color: var(--accent-alt); margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase;">Response (200 OK / 201 Created)</div>
               <div class="code-display-box" style="padding: 0.75rem; font-size: 0.8rem;">
                 <pre><code>${escapeHTML(String(JSON.stringify(ep.response || {}, null, 2)))}</code></pre>
               </div>
@@ -1323,8 +1338,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ${(stack||[]).map(tech => `
           <div class="feature-card" style="padding: 1.5rem; background: var(--bg-tertiary);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-              <h4 style="font-family: var(--font-heading); font-size: 1.1rem; color: #ffffff; font-weight: 600;">${escapeHTML(String(tech.layer || ''))}</h4>
-              <span style="font-size: 0.8rem; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 500;">${escapeHTML(String(tech.tech || ''))}</span>
+              <h4 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--accent-alt); font-weight: 600;">${escapeHTML(String(tech.layer || ''))}</h4>
+              <span style="font-size: 0.8rem; background: rgba(43, 76, 126, 0.15); border: 1px solid rgba(43, 76, 126, 0.3); color: var(--accent-alt); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 500;">${escapeHTML(String(tech.tech || ''))}</span>
             </div>
             <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;">${escapeHTML(String(tech.reason || ''))}</p>
           </div>

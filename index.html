@@ -13,10 +13,10 @@
     
     <!-- HEADER -->
     <header>
-      <div class="logo-container">
+      <button type="button" id="home-logo-btn" class="logo-container logo-home-btn" aria-label="Return to home">
         <div class="logo-icon">
           <!-- Logo Icon: Hexagon with Spec lines -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-alt);">
             <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
             <path d="M2 17l10 5 10-5"></path>
             <path d="M2 12l10 5 10-5"></path>
@@ -24,7 +24,7 @@
         </div>
         <span class="logo-text">OutcomeSpec</span>
         <span class="logo-badge">AI ARCHITECT</span>
-      </div>
+      </button>
       <div class="header-status">
         <div class="status-dot"></div>
         <span>AI Engine: Operational</span>
@@ -43,7 +43,8 @@
 
         <div class="input-container-card">
           <textarea id="prompt-input" class="prompt-textarea" placeholder="Example: Build a marketplace where students buy and sell used textbooks. It should have user authentication, listings search, secure messaging, and online payment integrations."></textarea>
-          
+          <p class="prompt-helper-text">Press Enter to generate • Shift+Enter for new line</p>
+
           <div class="input-actions-row">
             <span class="char-counter"><span id="char-count">0</span> / 1000 characters</span>
             <button id="generate-btn" class="btn-generate">
