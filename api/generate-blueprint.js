@@ -59,24 +59,28 @@ Expected JSON structure:
     "folderStructure": "src/..."
   },
   "vibeCoding": {
-    "setup": "Setup command...",
-    "db": "Db configuration...",
-    "backend": "Backend script...",
-    "frontend": "Frontend script...",
-    "deploy": "Deployment command..."
+    "frontend": ["Build the [specific component] with [specific features] using [tech from techStack]", "..."],
+    "backend": ["Implement the [specific service] with [business logic from features]", "..."],
+    "database": ["Design the [entity] schema with [specific relations and indexes]", "..."],
+    "api": ["Build the [specific endpoint path] with [auth, validation, business rules]", "..."],
+    "ai": ["Implement [specific AI feature] for [product-specific use case]", "..."],
+    "testing": ["Write [test type] for [specific feature/flow]", "..."],
+    "deployment": ["Configure [specific deployment tool] for [product-specific infra]", "..."]
   }
 }
 
 Rules:
 - Return ONLY the JSON object — no markdown, no prose, no code fences.
-- All string values must be short.
-- Arrays must be kept to 3-5 items.`;
+- All string values must be short (1-2 sentences).
+- Arrays must be kept to 3-5 items.
+- vibeCoding prompts MUST be specific to the product. Reference actual feature names, entity names, API paths, and tech stack choices from the generated blueprint. NEVER use generic placeholders like "npm install" or "npm run dev". Each prompt should be a detailed, actionable implementation task that a developer can paste into an AI coding assistant.`;
 }
 
 function buildRetryPrompt() {
   return `You are a software architect. The user describes an idea.
 Return a SINGLE JSON object containing a complete product specification and development blueprint.
 To avoid any token limit issues, keep every text value extremely short (less than 5-10 words) and keep arrays to exactly 2-3 items.
+The vibeCoding field must have 7 keys (frontend, backend, database, api, ai, testing, deployment), each an array of 2-3 product-specific implementation prompts. Never use generic commands.
 Return ONLY valid JSON without markdown formatting or code fences. Use the same key names.`;
 }
 
@@ -182,13 +186,15 @@ function getResponseSchema() {
       vibeCoding: {
         type: 'OBJECT',
         properties: {
-          setup:    { type: 'STRING' },
-          db:       { type: 'STRING' },
-          backend:  { type: 'STRING' },
-          frontend: { type: 'STRING' },
-          deploy:   { type: 'STRING' }
+          frontend:   { type: 'ARRAY', items: { type: 'STRING' } },
+          backend:    { type: 'ARRAY', items: { type: 'STRING' } },
+          database:   { type: 'ARRAY', items: { type: 'STRING' } },
+          api:        { type: 'ARRAY', items: { type: 'STRING' } },
+          ai:         { type: 'ARRAY', items: { type: 'STRING' } },
+          testing:    { type: 'ARRAY', items: { type: 'STRING' } },
+          deployment: { type: 'ARRAY', items: { type: 'STRING' } }
         },
-        required: ['setup', 'db', 'backend', 'frontend', 'deploy']
+        required: ['frontend', 'backend', 'database', 'api', 'ai', 'testing', 'deployment']
       }
     },
     required: [

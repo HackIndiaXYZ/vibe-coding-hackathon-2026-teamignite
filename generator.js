@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let generatedData = null;
   let activeTabId = 'sec-executive';
   let activeDbTab = 'relational';
-  let activeVibePrompt = 'setup';
+  let activeVibePrompt = 'frontend';
 
   // Debug logging helper: appends to a hidden DOM node and also logs to console
   (function initDebugLogger() {
@@ -86,21 +86,46 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const target = btn.getAttribute('data-target');
       
-      // Remove active states from buttons
+      // Update nav buttons active state
       sidebarNavBtns.forEach(b => b.classList.remove('active'));
-      // Add active state to clicked button
       btn.classList.add('active');
       
-      // Hide all section containers
-      sectionContainers.forEach(c => c.classList.remove('active'));
-      // Show target container
-      const targetContainer = document.getElementById(target);
-      targetContainer.classList.add('active');
+      // Update section containers active state (only active is visible)
+      sectionContainers.forEach(c => {
+        if (c.id === target) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
       
       activeTabId = target;
-      window.scrollTo({ top: document.querySelector('.blueprint-layout').offsetTop - 20, behavior: 'smooth' });
+      
+      // Scroll layout container to the top instantly
+      const layoutEl = document.querySelector('.blueprint-layout');
+      if (layoutEl) {
+        const yOffset = -20; // visual margin
+        const y = layoutEl.offsetTop + yOffset;
+        window.scrollTo({ top: y, behavior: 'instant' });
+      }
     });
   });
+
+  // Floating Back to Top Button Logic
+  const backToTopBtn = document.getElementById('back-to-top-btn');
+  if (backToTopBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTopBtn.classList.add('show');
+      } else {
+        backToTopBtn.classList.remove('show');
+      }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 
   // Main Generate Button Handler
   generateBtn.addEventListener('click', () => {
@@ -711,14 +736,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Vibe Coding ─────────────────────────────────────────────────────────
     if (g.vibeCoding) {
       data.vibeCoding = {
-        setup   : g.vibeCoding.setup    || '',
-        db      : g.vibeCoding.db       || '',
-        backend : g.vibeCoding.backend  || '',
-        frontend: g.vibeCoding.frontend || '',
-        deploy  : g.vibeCoding.deploy   || '',
+        frontend  : Array.isArray(g.vibeCoding.frontend)   ? g.vibeCoding.frontend   : [],
+        backend   : Array.isArray(g.vibeCoding.backend)    ? g.vibeCoding.backend    : [],
+        database  : Array.isArray(g.vibeCoding.database)   ? g.vibeCoding.database   : [],
+        api       : Array.isArray(g.vibeCoding.api)        ? g.vibeCoding.api        : [],
+        ai        : Array.isArray(g.vibeCoding.ai)         ? g.vibeCoding.ai         : [],
+        testing   : Array.isArray(g.vibeCoding.testing)    ? g.vibeCoding.testing    : [],
+        deployment: Array.isArray(g.vibeCoding.deployment)  ? g.vibeCoding.deployment : [],
       };
     } else {
-      data.vibeCoding = { setup: '', db: '', backend: '', frontend: '', deploy: '' };
+      data.vibeCoding = { frontend: [], backend: [], database: [], api: [], ai: [], testing: [], deployment: [] };
     }
 
     // ── Architecture Diagram ────────────────────────────────────────────────
@@ -791,9 +818,17 @@ document.addEventListener('DOMContentLoaded', () => {
       else btn.classList.remove('active');
     });
     
-    // Trigger click on first sidebar item to sync view
+    // Set first sidebar item and section container as active, and scroll to top
+    sidebarNavBtns.forEach(b => b.classList.remove('active'));
     const firstTabBtn = document.querySelector('.sidebar-nav-btn[data-target="sec-executive"]');
-    firstTabBtn.click();
+    if (firstTabBtn) firstTabBtn.classList.add('active');
+
+    sectionContainers.forEach(c => {
+      if (c.id === 'sec-executive') c.classList.add('active');
+      else c.classList.remove('active');
+    });
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   function renderExecutiveSection() {
@@ -961,23 +996,141 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  function formatSQL(sql) {
+    if (!sql || !sql.trim()) return '';
+    
+    let cleaned = sql.replace(/\s+/g, ' ').trim();
+    let statements = cleaned.split(';').map(s => s.trim()).filter(s => s.length > 0);
+    
+    let formattedStatements = statements.map(stmt => {
+      const createTableRegex = /^CREATE\s+TABLE\s+([a-zA-Z0-9_]+)\s*\((.*)\)$/i;
+      const match = stmt.match(createTableRegex);
+      
+      if (match) {
+        const tableName = match[1];
+        const columnsPart = match[2].trim();
+        
+        let columns = [];
+        let currentColumn = '';
+        let parenDepth = 0;
+        
+        for (let i = 0; i < columnsPart.length; i++) {
+          const char = columnsPart[i];
+          if (char === '(') parenDepth++;
+          if (char === ')') parenDepth--;
+          
+          if (char === ',' && parenDepth === 0) {
+            columns.push(currentColumn.trim());
+            currentColumn = '';
+          } else {
+            currentColumn += char;
+          }
+        }
+        if (currentColumn.trim()) {
+          columns.push(currentColumn.trim());
+        }
+        
+        let formattedColumns = columns.map(col => {
+          let words = col.split(/\s+/);
+          let formattedWords = words.map(word => {
+            const upper = word.toUpperCase();
+            const keywords = [
+              'INT', 'INTEGER', 'SERIAL', 'PRIMARY', 'KEY', 'VARCHAR', 'CHAR', 'TEXT', 
+              'BOOLEAN', 'TIMESTAMP', 'DATE', 'REFERENCES', 'NOT', 'NULL', 'UNIQUE', 
+              'DEFAULT', 'FOREIGN', 'CHECK', 'CONSTRAINT'
+            ];
+            if (keywords.some(k => upper.startsWith(k))) {
+              return upper;
+            }
+            return word;
+          });
+          return '    ' + formattedWords.join(' ');
+        });
+        
+        return `CREATE TABLE ${tableName} (\n${formattedColumns.join(',\n')}\n);`;
+      }
+      
+      let words = stmt.split(/\s+/);
+      let formattedWords = words.map(word => {
+        const upper = word.toUpperCase();
+        const keywords = ['CREATE', 'TABLE', 'ALTER', 'ADD', 'DROP', 'INDEX', 'ON', 'INSERT', 'INTO', 'VALUES'];
+        if (keywords.includes(upper)) return upper;
+        return word;
+      });
+      return formattedWords.join(' ') + ';';
+    });
+    
+    return formattedStatements.join('\n\n');
+  }
+
+  function getOrGenerateMongoSchema(db, entities) {
+    let nosql = db.nosql || '';
+    const isCode = nosql.includes('{') || nosql.includes('const ') || nosql.includes('schema') || nosql.includes('define');
+    
+    if (!nosql.trim() || !isCode) {
+      const coreEntities = entities || generatedData.businessAnalysis?.coreEntities || generatedData.entities || [];
+      const finalEntities = coreEntities.length > 0 ? coreEntities : ['User', 'Listing', 'Booking', 'Review'];
+      
+      let generated = '';
+      finalEntities.forEach(entity => {
+        const name = String(entity).trim();
+        const singularName = name.charAt(0).toUpperCase() + name.slice(1).replace(/s$/, '');
+        
+        generated += `const ${singularName}Schema = {\n`;
+        generated += `  _id: ObjectId,\n`;
+        
+        const lowerName = singularName.toLowerCase();
+        if (lowerName === 'user' || lowerName === 'customer' || lowerName === 'member') {
+          generated += `  email: String,\n`;
+          generated += `  passwordHash: String,\n`;
+          generated += `  createdAt: Date\n`;
+        } else if (lowerName === 'booking' || lowerName === 'reservation' || lowerName === 'order') {
+          generated += `  userId: ObjectId,\n`;
+          generated += `  startDate: Date,\n`;
+          generated += `  endDate: Date,\n`;
+          generated += `  status: String,\n`;
+          generated += `  totalPrice: Number\n`;
+        } else if (lowerName === 'property' || lowerName === 'listing' || lowerName === 'room' || lowerName === 'house') {
+          generated += `  ownerId: ObjectId,\n`;
+          generated += `  title: String,\n`;
+          generated += `  pricePerNight: Number\n`;
+        } else if (lowerName === 'review' || lowerName === 'comment' || lowerName === 'rating') {
+          generated += `  authorId: ObjectId,\n`;
+          generated += `  rating: Number,\n`;
+          generated += `  comment: String\n`;
+        } else {
+          generated += `  name: String,\n`;
+          generated += `  description: String,\n`;
+          generated += `  status: String\n`;
+        }
+        
+        generated += `};\n\n`;
+      });
+      
+      return generated.trim();
+    }
+    
+    return nosql.trim();
+  }
+
   function renderDatabaseSection() {
     const container = document.querySelector('#sec-database .section-content-render');
     const db = generatedData.database;
     
     if (activeDbTab === 'relational') {
+      const sqlContent = formatSQL(db.sql);
       container.innerHTML = `
-        <p style="color: var(--text-secondary); margin-bottom: 1.25rem;">We recommend <strong>PostgreSQL</strong> as the primary relational database. This schema defines structural tables, composite primary keys, foreign key constraints, and performance indexes:</p>
         <div class="code-display-box">
           <button class="btn-copy-section code-copy-overlay" onclick="copyCodeContent('db-sql-code')">Copy SQL</button>
-          <pre id="db-sql-code"><code>${escapeHTML(db.sql)}</code></pre>
+          <pre id="db-sql-code"><code>${escapeHTML(sqlContent)}</code></pre>
         </div>
       `;
     } else {
+      const nosqlContent = getOrGenerateMongoSchema(db, generatedData.businessAnalysis?.coreEntities);
       container.innerHTML = `
         <div class="code-display-box">
           <button class="btn-copy-section code-copy-overlay" onclick="copyCodeContent('db-nosql-code')">Copy Schema</button>
-          <pre id="db-nosql-code"><code>${escapeHTML(db.nosql || '')}</code></pre>
+          <pre id="db-nosql-code"><code>${escapeHTML(nosqlContent)}</code></pre>
         </div>
       `;
     }
@@ -1114,21 +1267,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderVibeSection() {
     const container = document.querySelector('#sec-vibe .section-content-render');
-    const prompt = generatedData.vibeCoding[activeVibePrompt];
-    container.innerHTML = `
-      <p style="color: var(--text-secondary); margin-bottom: 1rem;">Select a stage below, copy the pre-tuned prompt, and paste it directly into Cursor, Gemini, Claude, or Copilot Chat to initialize your project code:</p>
-      <div class="prompt-copy-container">
-        <div class="prompt-box" id="vibe-active-prompt">${escapeHTML(prompt)}</div>
-        <div style="display: flex; justify-content: flex-end;">
-          <button class="btn-outline-primary" style="padding: 0.75rem 1.75rem; font-size: 0.95rem;" onclick="copyCodeContent('vibe-active-prompt')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    const prompts = generatedData.vibeCoding[activeVibePrompt] || [];
+
+    const sectionLabels = {
+      frontend: 'Frontend Development',
+      backend: 'Backend Development',
+      database: 'Database Design',
+      api: 'API Implementation',
+      ai: 'AI Features',
+      testing: 'Testing',
+      deployment: 'Deployment'
+    };
+    const sectionLabel = sectionLabels[activeVibePrompt] || activeVibePrompt;
+
+    if (prompts.length === 0) {
+      container.innerHTML = `
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Select a category below, copy the pre-tuned prompt, and paste it directly into Cursor, Gemini, Claude, or Copilot Chat to implement your project code:</p>
+        <div class="info-card" style="width:100%; text-align:center; padding:2rem;">
+          <p style="color: var(--text-secondary);">No prompts generated for ${escapeHTML(sectionLabel)}.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const promptCards = prompts.map((p, i) => `
+      <div class="prompt-copy-container" style="margin-bottom: 1rem;">
+        <div class="prompt-box" id="vibe-prompt-${i}" style="font-size: 0.92rem; line-height: 1.6;">${escapeHTML(p)}</div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+          <button class="btn-outline-primary" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;" onclick="copyCodeContent('vibe-prompt-${i}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            <span>Copy Prompt</span>
+            <span>Copy</span>
           </button>
         </div>
       </div>
+    `).join('');
+
+    container.innerHTML = `
+      <p style="color: var(--text-secondary); margin-bottom: 1rem;">Select a category below, copy the pre-tuned prompt, and paste it directly into Cursor, Gemini, Claude, or Copilot Chat to implement your project code:</p>
+      <h4 style="color: var(--text-primary); margin-bottom: 1rem;">${escapeHTML(sectionLabel)} — ${prompts.length} Prompts</h4>
+      ${promptCards}
     `;
   }
 
@@ -1265,11 +1445,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
       case 'sec-vibe':
         md += `## 9. Vibe Coding Prompts\n\n`;
-        md += `### Project Setup\n\`\`\`text\n${generatedData.vibeCoding.setup}\n\`\`\`\n\n`;
-        md += `### Database Setup\n\`\`\`text\n${generatedData.vibeCoding.db}\n\`\`\`\n\n`;
-        md += `### Backend setup\n\`\`\`text\n${generatedData.vibeCoding.backend}\n\`\`\`\n\n`;
-        md += `### Frontend Setup\n\`\`\`text\n${generatedData.vibeCoding.frontend}\n\`\`\`\n\n`;
-        md += `### Deployment Setup\n\`\`\`text\n${generatedData.vibeCoding.deploy}\n\`\`\`\n`;
+        const vibeLabels = {
+          frontend: 'Frontend Development',
+          backend: 'Backend Development',
+          database: 'Database Design',
+          api: 'API Implementation',
+          ai: 'AI Features',
+          testing: 'Testing',
+          deployment: 'Deployment'
+        };
+        for (const [key, label] of Object.entries(vibeLabels)) {
+          const items = generatedData.vibeCoding[key] || [];
+          if (items.length > 0) {
+            md += `### ${label}\n`;
+            items.forEach((item, i) => md += `${i + 1}. ${item}\n`);
+            md += `\n`;
+          }
+        }
         break;
         
       case 'sec-diagram':

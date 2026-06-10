@@ -156,39 +156,35 @@
 
       <!-- 2.5. ANALYSIS VIEW -->
       <section id="analysis-view" class="view-section">
-        <div class="hero-wrapper">
-          <h1>Business Domain Analysis</h1>
-          <p>Review the inferred market model, competitors, roles, and revenue plan before the full technical blueprint is generated.</p>
+        <div class="hero-wrapper" style="margin-bottom: 1.25rem;">
+          <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">Business Domain Analysis</h1>
+          <p style="font-size: 0.85rem; max-width: 900px; margin: 0 auto;">Review the inferred market model, competitors, roles, and revenue plan before the full technical blueprint is generated.</p>
         </div>
 
-        <div class="info-grid" style="margin-bottom: 1.5rem;">
-          <div class="info-card">
+        <div class="compact-analysis-grid">
+          <div class="info-card compact-card">
             <h4>Business Category</h4>
             <p id="analysis-category">Loading...</p>
           </div>
-          <div class="info-card">
+          <div class="info-card compact-card">
             <h4>Revenue Model</h4>
             <p id="analysis-revenue">Loading...</p>
           </div>
-        </div>
-
-        <div class="info-grid">
-          <div class="info-card">
+          <div class="info-card compact-card">
             <h4>Comparable Products</h4>
             <ul id="analysis-competitors"></ul>
           </div>
-          <div class="info-card">
+          <div class="info-card compact-card">
             <h4>Primary User Roles</h4>
             <ul id="analysis-roles"></ul>
           </div>
+          <div class="info-card compact-card">
+            <h4>Core Business Entities</h4>
+            <ul id="analysis-entities"></ul>
+          </div>
         </div>
 
-        <div class="info-card" style="margin-top: 1.5rem; width: 100%;">
-          <h4>Core Business Entities</h4>
-          <ul id="analysis-entities"></ul>
-        </div>
-
-        <div class="input-actions-row" style="justify-content: flex-start; margin-top: 2rem; gap: 1rem;">
+        <div class="input-actions-row" style="gap: 1rem;">
           <button id="continue-btn" class="btn-generate">
             <span>Continue to Blueprint</span>
           </button>
@@ -465,11 +461,13 @@
               </div>
               
               <div class="vibe-pill-box" id="vibe-copier-tabs">
-                <button class="vibe-pill-btn active" data-prompt="setup">Project Setup</button>
-                <button class="vibe-pill-btn" data-prompt="db">Database Setup</button>
-                <button class="vibe-pill-btn" data-prompt="backend">Backend API Setup</button>
-                <button class="vibe-pill-btn" data-prompt="frontend">Frontend Views Setup</button>
-                <button class="vibe-pill-btn" data-prompt="deploy">Deployment Guide</button>
+                <button class="vibe-pill-btn active" data-prompt="frontend">Frontend</button>
+                <button class="vibe-pill-btn" data-prompt="backend">Backend</button>
+                <button class="vibe-pill-btn" data-prompt="database">Database</button>
+                <button class="vibe-pill-btn" data-prompt="api">API</button>
+                <button class="vibe-pill-btn" data-prompt="ai">AI Features</button>
+                <button class="vibe-pill-btn" data-prompt="testing">Testing</button>
+                <button class="vibe-pill-btn" data-prompt="deployment">Deployment</button>
               </div>
 
               <div class="section-content-render">
@@ -505,6 +503,14 @@
     <footer>
       <p>&copy; 2026 OutcomeSpec AI. Built by developers, for developers. Turn ideas into architectures in 60s.</p>
     </footer>
+
+    <!-- BACK TO TOP BUTTON -->
+    <button id="back-to-top-btn" class="back-to-top-btn" aria-label="Back to Top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+      </svg>
+    </button>
 
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="toast-notification">
