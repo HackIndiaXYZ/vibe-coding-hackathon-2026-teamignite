@@ -10,7 +10,7 @@ Built for founders, developers, indie hackers, product managers, agencies, and h
 
 # 🌐 Live Demo
 
-**Demo:** https://hack-india-app.vercel.app
+**Demo:** https://outcomespecai.vercel.app/
 
 ---
 
