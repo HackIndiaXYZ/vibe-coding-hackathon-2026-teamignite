@@ -1,4 +1,4 @@
-# 🚀 OutcomeSpec AI
+# 🚀 OutcomeSpec AI By TeamIgnite
 
 > **From Idea to Blueprint in Minutes**
 
